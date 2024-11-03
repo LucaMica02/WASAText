@@ -1,0 +1,105 @@
+openapi: 3.0.0
+info:
+  title: WASAText
+  description: |
+    OpenAPI document that describes the WASAText project REST API.
+    
+    "Connect with your friends effortlessly using WASAText! Send and
+    receive messages, whether one-on-one or in groups, all from the
+    convenience of your PC. Enjoy seamless conversations with text or
+    GIFs and easily stay in touch through your private chats or group
+    discussions."
+  version: 0.0.1
+
+paths:
+  /session:
+    post:
+      summary: Logs in the user
+      description: |
+        If the user does not exist, it will be created,
+        and an identifier is returned.
+        If the user exists, the user identifier is returned.
+      operationId: doLogin
+      requestBody:
+        description: User details
+        content:
+          application/json:
+            schema: {$ref: "#/components/schemas/loginRequest"}
+        required: true
+      responses:
+        "200":
+          description: User log-in action successful - user already exists
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/loginResponse"}
+        "201":
+          description: User log-in action successful - user created
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/loginResponse"}
+  
+  /users:
+    get:
+  /users/{userId}:
+    get:
+  /users/{userId}/username:
+    put:
+  /users/{userId}/photo:
+    put:
+  /users/{userId}/conversations:
+    get:
+  /users/{userId}/conversations/{conversationId}:
+    get:
+  
+  /conversations:
+    post:
+  /conversations/{conversationId}/messages:
+    post:
+  /conversations/{conversationId}/messages/{messageId}:
+    delete:
+  /conversations/{conversationId}/messages/{messageId}/forward:
+    post:
+  /conversations/{conversationId}/messages/{messageId}/comments:
+    put:
+    delete:
+  
+  /groups:
+    post:
+  /groups/{groupId}/members/{userId}:
+    put:
+    delete:
+  /group/{groupId}/name:
+    put:
+  /group/{groupId}/photo:
+    put:
+
+components:
+  schemas:
+    loginRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          pattern: 'ˆ.*?$'
+          minLength: 3
+          maxLength: 16
+          example: Mario
+    loginResponse:
+      type: object
+      properties:
+        identifier:
+          type: integer
+          minimum: 1
+          example: 100
+    user:
+    conversation:
+    message:
+    comment:
+    group:
+  
+  
+  
+  
+  
+  
+  

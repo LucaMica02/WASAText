@@ -1,0 +1,18 @@
+## UML Specifications
+
+1. User
+	1.1 username {id}
+	1.2 photo
+2. Message
+	2.1 timestamp
+	2.2 type {text, image}
+	2.3 content
+	2.4 status {pending, sent, received}
+3. Comment
+	3.1 emoticon
+4. Chat
+	4.1 Private 
+	4.2 Group
+5. Group
+	5.1 name
+	5.2 photo

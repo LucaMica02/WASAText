@@ -1,0 +1,96 @@
+## WASAText ##
+
+1. define APIs using the OpenAPI standard
+2. design and develop the server side (“backend”) in Go
+3. design and develop the client side (“frontend”) in JavaScript
+4. create a Docker container image for deployment
+
+"Connect with your friends effortlessly using WASAText! Send and receive messages, whether one-on-one or in groups, all from the convenience of your PC. Enjoy seamless conversations with text or GIFs and easily stay in touch through your private chats or group discussions."
+
+# Functional design specifications:
+- The user is presented with a list of conversations with other users or with groups, sorted in reverse chronological order.
+- Each element in the list must display the username of the other person or the group name, the user profile photo or the group photo, the date and time of the latest message, the preview (snippet) of the text message, or an icon for a photo message. 
+- The user can start a new conversation with any other user of WASAText, and this conversation will automatically be added to the list.
+- The user can search for other users via the username and see all the existing WASAText usernames.
+- The user can create a new group with any number of other WASAText users to start a conversation.
+- Group members can add other users to the group, but users cannot join groups on their own or even see groups they aren’t a part of.
+- Additionally, users have the option to leave a group at any time.
+- The user can open a conversation to view all exchanged messages, displayed in reverse chronological order.
+- Each message includes the timestamp, the content (whether text or photo), and the sender’s username for received messages, or one/two checkmarks to indicate the status of sent messages.
+- Any reactions (comments) on messages are also displayed, along with the names of the users who posted them.
+- One checkmark indicates that the message has been received by the recipient (by all the recipients for groups) in their conversation list. 
+- Two checkmarks mean that the message has been read by the recipient (by all the recipients for groups) within the conversation itself.
+- The user can send a new message, reply to an existing one, forward a message, and delete any sent messages.
+- Users can also react to messages (a.k.a. comment them) with an emoticon, and delete their reactions at any time (a.k.a. uncomment).
+- A user can log in simply by entering their username.
+- Users also have the ability to update their name, provided the new name is not already in use by someone else.
+
+# Simplified login:
+- The login endpoint accepts a username – like “Maria” – without any password.
+- If the username already exists, the user is logged in.
+- If the username is new, the user is registered and logged in.
+- The API will return the user identifier you need to pass into the Authorization header in any other API.
+
+# OpenAPI operationId:
+• doLogin*
+• setMyUserName*
+• getMyConversations*
+• getConversation*
+- createConversation*
+- getUsers*
+- getUser*
+• sendMessage*
+• forwardMessage*
+• commentMessage*
+• uncommentMessage*
+• deleteMessage*
+- createGroup*
+• addToGroup*
+• leaveGroup*
+• setGroupName*
+• setMyPhoto*
+• setGroupPhoto*
+
+# CORS
+- The backend must reply to CORS pre-flight requests with the appropriate setting.
+- To avoid problems during the homework grading, you should allow all origins and you should set the “Max-Age” attribute to 1 second.
+
+# API Structure
+
+- info
+- paths [/exemple]
+	- parameters (optional) [/{id}]
+	- methods [POST, PUT, GET, DELETE]
+		- responses ["200", "201", "400", "404", ..]
+- components
+	- schemas
+
+################################################################
+- /session [doLogin {POST}]
+- /users [getUsers {GET}] ([user])
+- /users/{userId} [getUser {GET}] (user)
+- /users/{userId}/username [setMyUsername {PUT}] (user)
+- /users/{userId}/photo [setMyPhoto {PUT}] (user)
+- /users/{userId}/conversations [getMyConversations {GET}] ([conversation])
+- /users/{userId}/conversations/{conversationId} [getConversation {GET}] (conversation)
+
+- /conversations [createConversation {POST}] (conversationId)
+- /conversations/{conversationId}/messages [sendMessage {POST}] (messageId)
+- /conversations/{conversationId}/messages/{messageId} [deleteMessage {DELETE}] ()
+- /conversations/{conversationId}/messages/{messageId}/forward [forwardMessage {POST}] (messageId)
+- /conversations/{conversationId}/messages/{messageId}/comments [commentMessage {PUT}, uncommentMessage {DELETE}] (commentId)
+
+- /groups [createGroup {POST}] (groupId)
+- /groups/{groupId}/members/{userId} [leaveGroup {DELETE}, addToGroup {PUT}] (groupId)
+- /group/{groupId}/name [setGroupName {PUT}] (groupId)
+- /group/{groupId}/photo [setGroupPhoto {PUT}] (groupId)
+
+* group conversation
+################################################################
+
+# SCHEMAS
+- user
+- conversation
+- message
+- comment
+- group
