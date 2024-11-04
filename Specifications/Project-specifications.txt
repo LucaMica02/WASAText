@@ -48,6 +48,7 @@
 • addToGroup*
 • leaveGroup*
 • setGroupName*
+- setGroupDescription*
 • setMyPhoto*
 • setGroupPhoto*
 
@@ -66,31 +67,66 @@
 	- schemas
 
 ################################################################
+[auth]
 - /session [doLogin {POST}]
-- /users [getUsers {GET}] ([user])
-- /users/{userId} [getUser {GET}] (user)
-- /users/{userId}/username [setMyUsername {PUT}] (user)
-- /users/{userId}/photo [setMyPhoto {PUT}] (user)
-- /users/{userId}/conversations [getMyConversations {GET}] ([conversation])
-- /users/{userId}/conversations/{conversationId} [getConversation {GET}] (conversation)
 
-- /conversations [createConversation {POST}] (conversationId)
-- /conversations/{conversationId}/messages [sendMessage {POST}] (messageId)
-- /conversations/{conversationId}/messages/{messageId} [deleteMessage {DELETE}] ()
-- /conversations/{conversationId}/messages/{messageId}/forward [forwardMessage {POST}] (messageId)
-- /conversations/{conversationId}/messages/{messageId}/comments [commentMessage {PUT}, uncommentMessage {DELETE}] (commentId)
+[user]
+- /users [getUsers {GET}] 
+- /users/{userId} [getUser {GET}] 
+- /users/{userId}/username [setMyUsername {PUT}] 
+- /users/{userId}/photo [setMyPhoto {PUT}] 
 
+[conversation]
+- /users/{userId}/conversations [getMyConversations {GET}]
+- /users/{userId}/conversations/{conversationId} [getConversation {GET}] 
+- /conversations [createConversation {POST}] 
+
+[message]
+- /conversations/{conversationId}/messages [sendMessage {POST}] 
+- /conversations/{conversationId}/messages/{messageId} [deleteMessage {DELETE}] 
+- /conversations/{conversationId}/messages/{messageId}/forward [forwardMessage {POST}] 
+
+[comment]
+- /conversations/{conversationId}/messages/{messageId}/comments [commentMessage {PUT}, uncommentMessage {DELETE}]
+
+[group]
 - /groups [createGroup {POST}] (groupId)
-- /groups/{groupId}/members/{userId} [leaveGroup {DELETE}, addToGroup {PUT}] (groupId)
-- /group/{groupId}/name [setGroupName {PUT}] (groupId)
-- /group/{groupId}/photo [setGroupPhoto {PUT}] (groupId)
+- /groups/{groupId}/members/{userId} [leaveGroup {DELETE}, addToGroup {PUT}] 
+- /groups/{groupId}/name [setGroupName {PUT}] 
+- /groups/{groupId}/description [setGroupDescription {PUT}] 
+- /groups/{groupId}/photo [setGroupPhoto {PUT}] 
 
-* group conversation
+[image]
+- /image/{imageId} [getImage {GET}]
+
 ################################################################
 
+# PARAMETERS
+- UserId
+- ConversationId
+- MessageId
+- GroupId
+
 # SCHEMAS
-- user
-- conversation
-- message
-- comment
-- group
+- ResourceId
+- Username
+- ConversationName
+- GroupName
+- GroupDescription
+- PhotoUrl
+- Photo
+- LoginRequest
+- LoginResponse
+- User
+- Conversation
+- Message
+- Comment
+- Group
+
+# RESPONSES
+- BadRequest
+- Unauthorized
+- Forbidden
+- NotFound
+- Conflict
+- InternalServerError
