@@ -500,7 +500,7 @@ paths:
           description: Group photo updated
           content:
             application/json:
-              schema: {$ref: "#/components/schemas/PhotoUrl"}
+              schema: {$ref: "#/components/schemas/StaticImageUrl"}
         "400": {$ref: "#/components/responses/BadRequest"}
         "401": {$ref: "#/components/responses/Unauthorized"}
         "403": {$ref: '#/components/responses/Forbidden'}
@@ -546,10 +546,13 @@ components:
       minLength: 3        
       maxLength: 16
       example: Mario
-    PhotoUrl: 
+    StaticImageUrl: 
       type: string
       format: uri
-      description: URL of the photo
+      description: |
+        Static URL of the image.
+        It can be stored on a different server, dedicated to managing static resources, 
+        on a content delivery network (CDN), or on the same server.
       example: "https://storage-service.com/bucket/user123-photo.jpg"
     ConversationName:
       type: string
@@ -568,11 +571,11 @@ components:
       type: object
       properties:
         file:
+          description: Photo file to upload in binary format.
           type: string
+          minLength: 1
+          maxLength: 26214400 # 25MB
           format: binary
-          description: |
-            The image file to upload (JPEG, PNG, etc.)
-            Size should be max 10 MB.
       required: [file]
     LoginRequest:
       type: object
@@ -588,7 +591,7 @@ components:
       type: object
       properties:
         username: {$ref: '#/components/schemas/Username'}
-        photo: {$ref: "#/components/schemas/PhotoUrl"}
+        photo: {$ref: "#/components/schemas/StaticImageUrl"}
       required: [username, photo]
     Conversation:
       description: |
@@ -645,7 +648,7 @@ components:
       properties:
         name: {$ref: '#/components/schemas/GroupName'} 
         description: {$ref: '#/components/schemas/GroupDescription'}
-        photo: {$ref: "#/components/schemas/PhotoUrl"}
+        photo: {$ref: "#/components/schemas/StaticImageUrl"}
         partecipants: 
           type: array
           items: {$ref: "#/components/schemas/Username"}

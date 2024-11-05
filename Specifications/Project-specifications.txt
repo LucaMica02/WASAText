@@ -96,9 +96,6 @@
 - /groups/{groupId}/description [setGroupDescription {PUT}] 
 - /groups/{groupId}/photo [setGroupPhoto {PUT}] 
 
-[image]
-- /image/{imageId} [getImage {GET}]
-
 ################################################################
 
 # PARAMETERS
