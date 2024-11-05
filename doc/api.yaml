@@ -490,9 +490,9 @@ paths:
         An user can update the group photo only if it is a participant.
       operationId: setGroupPhoto
       requestBody:
-        description: Group photo updated
+        description: New group photo
         content:
-          application/json:
+          multipart/form-data:
             schema: {$ref: "#/components/schemas/Photo"}
         required: true
       responses:
