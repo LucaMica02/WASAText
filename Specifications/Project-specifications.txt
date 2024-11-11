@@ -71,31 +71,32 @@
 - /session [doLogin {POST}]
 
 [user]
-- /users [getUsers {GET}] 
-- /users/{userId} [getUser {GET}] 
-- /users/{userId}/username [setMyUsername {PUT}] 
-- /users/{userId}/photo [setMyPhoto {PUT}] 
+- /users [getUsers {GET}] *
+- /users/{userId} [getUser {GET}] *
+- /users/{userId}/username [setMyUsername {PUT}] *
+- /users/{userId}/photo [setMyPhoto {PUT}] *
 
 [conversation]
-- /users/{userId}/conversations [getMyConversations {GET}]
-- /users/{userId}/conversations/{conversationId} [getConversation {GET}] 
-- /conversations [createConversation {POST}] 
+- /users/{userId}/conversations [getMyConversations {GET}] *
+- /users/{userId}/conversations/{conversationId} [getConversation {GET}] * 
+- /conversations [createConversation {POST}] *
 
 [message]
-- /conversations/{conversationId}/messages [sendMessage {POST}] 
-- /conversations/{conversationId}/messages/{messageId} [deleteMessage {DELETE}] 
-- /conversations/{conversationId}/messages/{messageId}/forward [forwardMessage {POST}] 
+- /conversations/{conversationId}/messages [sendMessage {POST}] *
+- /conversations/{conversationId}/messages/{messageId} [deleteMessage {DELETE}] *
+- /conversations/{conversationId}/messages/{messageId}/forward [forwardMessage {POST}] *
 
 [comment]
-- /conversations/{conversationId}/messages/{messageId}/comments [commentMessage {PUT}, uncommentMessage {DELETE}]
+- /conversations/{conversationId}/messages/{messageId}/comments [commentMessage {PUT}, uncommentMessage {DELETE}] *
 
 [group]
-- /groups [createGroup {POST}] (groupId)
-- /groups/{groupId}/members/{userId} [leaveGroup {DELETE}, addToGroup {PUT}] 
-- /groups/{groupId}/name [setGroupName {PUT}] 
-- /groups/{groupId}/description [setGroupDescription {PUT}] 
-- /groups/{groupId}/photo [setGroupPhoto {PUT}] 
+- /groups [createGroup {POST}] (groupId) *
+- /groups/{groupId}/members/{userId} [leaveGroup {DELETE}, addToGroup {PUT}] *
+- /groups/{groupId}/name [setGroupName {PUT}] *
+- /groups/{groupId}/description [setGroupDescription {PUT}] *
+- /groups/{groupId}/photo [setGroupPhoto {PUT}] *
 
+* Checkmarks
 ################################################################
 
 # PARAMETERS
