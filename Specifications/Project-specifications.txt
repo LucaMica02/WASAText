@@ -44,6 +44,9 @@
 • commentMessage*
 • uncommentMessage*
 • deleteMessage*
+- updateMessageStatus*
+- addReceiver*
+- addReader*
 - createGroup*
 • addToGroup*
 • leaveGroup*
@@ -85,6 +88,9 @@
 - /conversations/{conversationId}/messages [sendMessage {POST}] *
 - /conversations/{conversationId}/messages/{messageId} [deleteMessage {DELETE}] *
 - /conversations/{conversationId}/messages/{messageId}/forward [forwardMessage {POST}] *
+- /conversations/{conversationId}/messages/{messageId}/status [updateMessageStatus {PUT}] *
+- /conversations/{conversationId}/messages/{messageId}/receivers/{userId} [addReceiver {PUT}] *
+- /conversations/{conversationId}/messages/{messageId}/readers/{userId} [addReader {PUT}] *
 
 [comment]
 - /conversations/{conversationId}/messages/{messageId}/comments [commentMessage {PUT}, uncommentMessage {DELETE}] *
@@ -96,7 +102,11 @@
 - /groups/{groupId}/description [setGroupDescription {PUT}] *
 - /groups/{groupId}/photo [setGroupPhoto {PUT}] *
 
-* Checkmarks
+* SearchUsers esplicito
+* Stato dei messaggi (checkmark) $
+* Ricevuto Da $
+* Consegnato A $
+* Anteprima delle conversazioni
 ################################################################
 
 # PARAMETERS

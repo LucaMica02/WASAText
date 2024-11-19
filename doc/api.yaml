@@ -326,6 +326,80 @@ paths:
         "403": {$ref: '#/components/responses/Forbidden'}
         "404": {$ref: "#/components/responses/NotFound"}
         "500": {$ref: "#/components/responses/InternalServerError"}
+  /conversations/{conversationId}/messages/{messageId}/status:
+    parameters:
+      - $ref: "#/components/parameters/ConversationId"
+      - $ref: "#/components/parameters/MessageId"
+    put:
+      tags: ["message"]
+      summary: Update message status
+      description: |
+        Message status:
+        Delivered -> when sent
+        Received -> when received by the recipient (by all the recipients for groups)
+        Read -> when read by the recipient (by all the recipients for groups)
+      operationId: updateMessageStatus
+      requestBody:
+        description: Update the message status
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/MessageStatus'}
+        required: true
+      responses:
+        "200":
+          description: Message status updated
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/MessageStatus"}
+        "400": {$ref: "#/components/responses/BadRequest"}
+        "401": {$ref: "#/components/responses/Unauthorized"}
+        "403": {$ref: '#/components/responses/Forbidden'}
+        "404": {$ref: "#/components/responses/NotFound"}
+        "500": {$ref: "#/components/responses/InternalServerError"}
+  /conversations/{conversationId}/messages/{messageId}/receivers/{userId}:
+    parameters:
+      - $ref: "#/components/parameters/ConversationId"
+      - $ref: "#/components/parameters/MessageId"
+      - $ref: "#/components/parameters/UserId"
+    put:
+      tags: ["message"]
+      summary: Add a new receiver
+      description: |
+        When a user log in he received all the new messages
+      operationId: addReceiver
+      responses:
+        "200":
+          description: New receiver added
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/Username"}
+        "400": {$ref: "#/components/responses/BadRequest"}
+        "401": {$ref: "#/components/responses/Unauthorized"}
+        "403": {$ref: '#/components/responses/Forbidden'}
+        "404": {$ref: "#/components/responses/NotFound"}
+        "500": {$ref: "#/components/responses/InternalServerError"}
+  /conversations/{conversationId}/messages/{messageId}/readers/{userId}:
+    parameters:
+      - $ref: "#/components/parameters/ConversationId"
+      - $ref: "#/components/parameters/MessageId"
+      - $ref: "#/components/parameters/UserId"
+    put:
+      tags: ["message"]
+      summary: Update message status
+      description: |
+        When a user enter in a chat he reads all the new messages
+      operationId: addReader
+      responses:
+        "200":
+          description: New reader added
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/MessageStatus"}
+        "400": {$ref: "#/components/responses/BadRequest"}
+        "401": {$ref: "#/components/responses/Unauthorized"}
+        "403": {$ref: '#/components/responses/Forbidden'}
+        "404": {$ref: "#/components/responses/NotFound"}
+        "500": {$ref: "#/components/responses/InternalServerError"}
         
   /conversations/{conversationId}/messages/{messageId}/comment:
     parameters:
@@ -634,6 +708,17 @@ components:
           minItems: 0
           maxItems: 100
       required: [name, messages]
+    MessageStatus:           
+      description: |
+        Message status:
+        Delivered -> when sent
+        Received -> when received by the recipient (by all the recipients for groups)
+        Read -> when read by the recipient (by all the recipients for groups)
+      type: string
+      enum: 
+      - delivered
+      - received
+      - read
     Message:
       description: Object that represent the Message
       type: object
@@ -644,12 +729,25 @@ components:
           type: string
           format: date-time
         sender: {$ref: '#/components/schemas/Username'}
+        receivers:
+          description: User that have received the message
+          type: array
+          items: {$ref: '#/components/schemas/Username'}
+          minItems: 0
+          maxItems: 100
+        readers:
+          description: User that have read the message
+          type: array
+          items: {$ref: '#/components/schemas/Username'}
+          minItems: 0
+          maxItems: 100
         reactions: 
           description: Array of comments
           type: array
           items: {$ref: '#/components/schemas/Comment'}
           minItems: 0
           maxItems: 100
+        status: {$ref: '#/components/schemas/MessageStatus'}
         body:
           oneOf:
             - type: object
@@ -667,7 +765,7 @@ components:
                   format: binary
                   description: Binary image content of the message
               required: [image]
-      required: [timestamp, sender, reactions, body]
+      required: [timestamp, sender, reactions, status, receivers, readers, body]
     Comment:
       description: Object that represent the comment
       type: object
