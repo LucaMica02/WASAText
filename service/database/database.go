@@ -41,6 +41,10 @@ type AppDatabase interface {
 	GetName() (string, error)
 	SetName(name string) error
 
+	CheckIfUserExists(username string) (bool, error)
+	GetUserId(usename string) (int, error)
+	CreateUser(username string) error
+
 	Ping() error
 }
 
@@ -57,71 +61,16 @@ func New(db *sql.DB) (AppDatabase, error) {
 
 	// Check if table exists. If not, the database is empty, and we need to create the structure
 	var tableName string
-	err := db.QueryRow(`SELECT name FROM sqlite_master WHERE type='table' AND name='example_table';`).Scan(&tableName)
+	err := db.QueryRow(`SELECT name FROM sqlite_master WHERE type='table' AND name='User';`).Scan(&tableName)
 	if errors.Is(err, sql.ErrNoRows) {
+		return nil, fmt.Errorf("error DB: Database empty: %w", err)
+	}
 
-		// Create User Table
-		sqlStmt := `CREATE TABLE example_table (id INTEGER NOT NULL PRIMARY KEY, name TEXT);`
-		_, err = db.Exec(sqlStmt)
-		if err != nil {
-			return nil, fmt.Errorf("error creating User table: %w", err)
-		}
-
-		// Create Conversation Table
-		sqlStmt = `CREATE TABLE example_table (id INTEGER NOT NULL PRIMARY KEY, name TEXT);`
-		_, err = db.Exec(sqlStmt)
-		if err != nil {
-			return nil, fmt.Errorf("error creating Conversation table: %w", err)
-		}
-
-		// Create PrivateConversation Table
-		sqlStmt = `CREATE TABLE example_table (id INTEGER NOT NULL PRIMARY KEY, name TEXT);`
-		_, err = db.Exec(sqlStmt)
-		if err != nil {
-			return nil, fmt.Errorf("error creating PrivateConversation table: %w", err)
-		}
-
-		// Create Group Table
-		sqlStmt = `CREATE TABLE example_table (id INTEGER NOT NULL PRIMARY KEY, name TEXT);`
-		_, err = db.Exec(sqlStmt)
-		if err != nil {
-			return nil, fmt.Errorf("error creating Group table: %w", err)
-		}
-
-		// Create Message Table
-		sqlStmt = `CREATE TABLE example_table (id INTEGER NOT NULL PRIMARY KEY, name TEXT);`
-		_, err = db.Exec(sqlStmt)
-		if err != nil {
-			return nil, fmt.Errorf("error creating Message table: %w", err)
-		}
-
-		// Create Comment Table
-		sqlStmt = `CREATE TABLE example_table (id INTEGER NOT NULL PRIMARY KEY, name TEXT);`
-		_, err = db.Exec(sqlStmt)
-		if err != nil {
-			return nil, fmt.Errorf("error creating Comment table: %w", err)
-		}
-
-		// Create UserGroup Table
-		sqlStmt = `CREATE TABLE example_table (id INTEGER NOT NULL PRIMARY KEY, name TEXT);`
-		_, err = db.Exec(sqlStmt)
-		if err != nil {
-			return nil, fmt.Errorf("error creating UserGroup table: %w", err)
-		}
-
-		// Create MessageReceivers Table
-		sqlStmt = `CREATE TABLE example_table (id INTEGER NOT NULL PRIMARY KEY, name TEXT);`
-		_, err = db.Exec(sqlStmt)
-		if err != nil {
-			return nil, fmt.Errorf("error creating MessageReceivers table: %w", err)
-		}
-
-		// Create MessageReaders Table
-		sqlStmt = `CREATE TABLE example_table (id INTEGER NOT NULL PRIMARY KEY, name TEXT);`
-		_, err = db.Exec(sqlStmt)
-		if err != nil {
-			return nil, fmt.Errorf("error creating MessageReaders table: %w", err)
-		}
+	// Active the foreign keys
+	sqlStmt := `PRAGMA foreign_keys = ON;`
+	_, err = db.Exec(sqlStmt)
+	if err != nil {
+		return nil, fmt.Errorf("error activing the foreign keys: %w", err)
 	}
 
 	return &appdbimpl{
