@@ -101,12 +101,6 @@
 - /groups/{groupId}/name [setGroupName {PUT}] *
 - /groups/{groupId}/description [setGroupDescription {PUT}] *
 - /groups/{groupId}/photo [setGroupPhoto {PUT}] *
-
-* SearchUsers esplicito
-* Stato dei messaggi (checkmark) $
-* Ricevuto Da $
-* Consegnato A $
-* Anteprima delle conversazioni
 ################################################################
 
 # PARAMETERS

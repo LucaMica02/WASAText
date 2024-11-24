@@ -117,7 +117,7 @@ paths:
         Update the user's username for the specified userId with the new username provided.
         Allowe the operation only if the new username isn't already taken by someone else.
         The user are allowed to change only their username.
-      operationId: setMyUsername
+      operationId: setMyUserName
       requestBody:
         description: New username provided
         content:
@@ -644,6 +644,9 @@ components:
     StaticImageUrl: 
       type: string
       format: uri
+      pattern: "^(https?:\/\/).*$"
+      minLength: 7      
+      maxLength: 2048
       description: |
         Static URL of the image.
         It can be stored on a different server, dedicated to managing static resources, 
@@ -655,8 +658,14 @@ components:
       pattern: '^.*?$'
       minLength: 2       
       maxLength: 20
-      example: Example Name
-    GroupName: {$ref: '#/components/schemas/ConversationName'}
+      example: Example Chat Name
+    GroupName: 
+      description: Name of the group
+      type: string
+      pattern: '^.*?$'
+      minLength: 2       
+      maxLength: 20
+      example: Example Group Name
     GroupDescription:
       description: Description fo the group
       type: string
@@ -749,6 +758,7 @@ components:
           maxItems: 100
         status: {$ref: '#/components/schemas/MessageStatus'}
         body:
+          description: Message body could be text or image
           oneOf:
             - type: object
               properties:
@@ -760,10 +770,7 @@ components:
               required: [text]
             - type: object
               properties:
-                image:
-                  type: string
-                  format: binary
-                  description: Binary image content of the message
+                image: {$ref: '#/components/schemas/Photo'}
               required: [image]
       required: [timestamp, sender, reactions, status, receivers, readers, body]
     Comment:
@@ -784,7 +791,8 @@ components:
         name: {$ref: '#/components/schemas/GroupName'} 
         description: {$ref: '#/components/schemas/GroupDescription'}
         photo: {$ref: "#/components/schemas/StaticImageUrl"}
-        partecipants: 
+        partecipants:
+          description: array of group partecipants
           type: array
           items: {$ref: "#/components/schemas/Username"}
           minItems: 1
