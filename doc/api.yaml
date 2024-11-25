@@ -181,7 +181,7 @@ paths:
               schema: 
                 description: Array of the users conversation
                 type: array
-                items: {$ref: "#/components/schemas/Conversation"}
+                items: {$ref: "#/components/schemas/ResourceId"}
                 minItems: 0
                 maxItems: 100
         "400": {$ref: "#/components/responses/BadRequest"}
@@ -594,7 +594,7 @@ paths:
           description: Group photo updated
           content:
             application/json:
-              schema: {$ref: "#/components/schemas/StaticImageUrl"}
+              schema: {$ref: "#/components/schemas/PhotoUrl"}
         "400": {$ref: "#/components/responses/BadRequest"}
         "401": {$ref: "#/components/responses/Unauthorized"}
         "403": {$ref: '#/components/responses/Forbidden'}
@@ -641,7 +641,7 @@ components:
       minLength: 3        
       maxLength: 16
       example: Mario
-    StaticImageUrl: 
+    PhotoUrl: 
       type: string
       format: uri
       pattern: "^(https?:\/\/).*$"
@@ -701,7 +701,7 @@ components:
       type: object
       properties:
         username: {$ref: '#/components/schemas/Username'}
-        photo: {$ref: "#/components/schemas/StaticImageUrl"}
+        photo: {$ref: "#/components/schemas/PhotoUrl"}
       required: [username, photo]
     Conversation:
       description: |
@@ -737,25 +737,7 @@ components:
             The date and time in ISO 8601 format (e.g., 2023-11-04T14:23:00Z)
           type: string
           format: date-time
-        sender: {$ref: '#/components/schemas/Username'}
-        receivers:
-          description: User that have received the message
-          type: array
-          items: {$ref: '#/components/schemas/Username'}
-          minItems: 0
-          maxItems: 100
-        readers:
-          description: User that have read the message
-          type: array
-          items: {$ref: '#/components/schemas/Username'}
-          minItems: 0
-          maxItems: 100
-        reactions: 
-          description: Array of comments
-          type: array
-          items: {$ref: '#/components/schemas/Comment'}
-          minItems: 0
-          maxItems: 100
+        sender: {$ref: '#/components/schemas/ResourceId'}
         status: {$ref: '#/components/schemas/MessageStatus'}
         body:
           description: Message body could be text or image
@@ -770,7 +752,7 @@ components:
               required: [text]
             - type: object
               properties:
-                image: {$ref: '#/components/schemas/Photo'}
+                image: {$ref: '#/components/schemas/PhotoUrl'}
               required: [image]
       required: [timestamp, sender, reactions, status, receivers, readers, body]
     Comment:
@@ -790,7 +772,7 @@ components:
       properties:
         name: {$ref: '#/components/schemas/GroupName'} 
         description: {$ref: '#/components/schemas/GroupDescription'}
-        photo: {$ref: "#/components/schemas/StaticImageUrl"}
+        photo: {$ref: "#/components/schemas/PhotoUrl"}
         partecipants:
           description: array of group partecipants
           type: array
