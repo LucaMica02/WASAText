@@ -38,12 +38,22 @@ import (
 
 // AppDatabase is the high level interface for the DB
 type AppDatabase interface {
-	GetName() (string, error)
-	SetName(name string) error
 
-	CheckIfUserExists(username string) (bool, error)
+	// User Operations
+	CheckIfUserExistsByUsername(username string) (bool, error)
+	CheckIfUserExistsByUserId(userId int) (bool, error)
 	GetUserId(usename string) (int, error)
 	CreateUser(username string) error
+	GetUserById(userId int) (User, error)
+	GetUserByUsername(username string) (User, error)
+	GetAllUsers() ([]User, error)
+	UpdateUsername(username string, userId int) error
+	UpdatePhotoUrl(url string, userId int) error
+
+	// Conversation Operations
+	GetPrivateConversationsByUserId(userId int) ([]ConversationId, error)
+	GetGroupConversationsByUserId(userId int) ([]ConversationId, error)
+	GetConversationByConversationId(conversationId int) (Conversation, error)
 
 	Ping() error
 }
