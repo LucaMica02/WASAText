@@ -1,7 +1,5 @@
 package database
 
-import "time"
-
 // GetName is an example that shows you how to query data
 func (db *appdbimpl) GetName() (string, error) {
 	var name string
@@ -89,19 +87,18 @@ type Conversation struct {
 }
 
 type Message struct {
-	Timestamp time.Time `json:"timestamp"`
-	Sender    Username  `json:"sender"`
-	Status    string    `json:"status"`
-	Type      string    `json:"type"`
-	Body      string    `json:"body"`
+	Timestamp     string `json:"timestamp"`
+	Sender        int    `json:"sender"`
+	Conversation  int    `json:"conversation"`
+	Status        string `json:"status"`
+	Type          string `json:"type"`
+	Body          string `json:"body"`
+	RepliedTo     int    `json:"repliedTo"`
+	ForwardedFrom int    `json:"forwardedFrom"`
 }
 
 type Comment struct {
 	Emoji string `json:"emoji"`
-}
-
-type Username struct {
-	Username string `json:"username"`
 }
 
 func (db *appdbimpl) GetPrivateConversationsByUserId(userId int) ([]ConversationId, error) {
@@ -140,19 +137,61 @@ func (db *appdbimpl) GetGroupConversationsByUserId(userId int) ([]ConversationId
 	return conversations, nil
 }
 
-func (db *appdbimpl) GetConversationByConversationId(conversationId int) (Conversation, error) {
+func (db *appdbimpl) CheckIfConversationExistsByConversationId(conversationId int) (bool, error) {
+	var exists bool
+	err := db.c.QueryRow("SELECT EXISTS(SELECT 1 FROM Conversation WHERE conversationId = ?)", conversationId).Scan(&exists)
+	return exists, err
+}
+
+func (db *appdbimpl) GetConversationByConversationId(conversationId int, userId int) (Conversation, error) {
 	var conversation Conversation
 	var messages []Message
-	rows, err := db.c.Query("SELECT timestamp, senderId, status, type, content FROM Message WHERE conversationId = ?", conversationId)
+	rows, err := db.c.Query("SELECT timestamp, senderId, status, type, content, repliedTo, forwardedFrom FROM Message WHERE conversationId = ?", conversationId)
 	for rows.Next() {
 		var message Message
-		err = rows.Scan(&message.Timestamp, &message.Sender, &message.Status, &message.Type, &message.Body)
+		rows.Scan(&message.Timestamp, &message.Sender, &message.Status, &message.Type, &message.Body, &message.RepliedTo, &message.ForwardedFrom)
 		messages = append(messages, message)
 	}
 	rows.Close()
 	conversation.Messages = messages
 	var name string
 	_ = db.c.QueryRow("SELECT name FROM GroupConversation WHERE conversationId = ?", conversationId).Scan(&name)
+	_ = db.c.QueryRow("SELECT u.username FROM PrivateConversation pc JOIN User u ON pc.userId_1 = u.userId OR pc.userId_2 = u.userId WHERE pc.conversationId = ? AND (u.userId != ?)", conversationId, userId).Scan(&name)
 	conversation.Name = name
 	return conversation, err
+}
+
+func (db *appdbimpl) CreatePrivateConversation(userId_1 int, userId_2 int) (int, error) {
+	res, _ := db.c.Exec("INSERT INTO Conversation DEFAULT VALUES")
+	conversationId, _ := res.LastInsertId()
+	_, err := db.c.Exec("INSERT INTO PrivateConversation (conversationId, userId_1, userId_2) VALUES (?, ?, ?)", conversationId, userId_1, userId_2)
+	return int(conversationId), err
+}
+
+/* MESSAGE */
+func (db *appdbimpl) CheckIfMessageExistsByMessageId(messageId int) (bool, error) {
+	var exists bool
+	err := db.c.QueryRow("SELECT EXISTS(SELECT 1 FROM Message WHERE messageId = ?)", messageId).Scan(&exists)
+	return exists, err
+}
+
+func (db *appdbimpl) CreateMessage(timestamp string, senderId int, conversationId int, status string, mexType string, content string, repliedTo int, forwardedFrom int) error {
+	_, err := db.c.Exec("INSERT INTO Message (timestamp, senderId, conversationId, status, type, content, repliedTo, forwardedFrom) VALUES (?, ?, ?, ?, ?, ?, ?, ?)", timestamp, senderId, conversationId, status, mexType, content, repliedTo, forwardedFrom)
+	return err
+}
+
+func (db *appdbimpl) DeleteMessage(messageId int) error {
+	_, err := db.c.Exec("DELETE FROM Message WHERE messageId = ?", messageId)
+	return err
+}
+
+func (db *appdbimpl) ForwardMessage(messageId int, senderId int, conversationId int, timestamp string) (Message, error) {
+	var message Message
+	_ = db.c.QueryRow("SELECT status, type, content FROM Message WHERE messageId = ?", messageId).Scan(&message.Status, &message.Type, &message.Body)
+	message.Timestamp = timestamp
+	message.Sender = senderId
+	message.Conversation = conversationId
+	message.ForwardedFrom = messageId
+	_, err := db.c.Exec("INSERT INTO Message (timestamp, senderId, conversationId, status, type, content, repliedTo, forwardedFrom) VALUES (?, ?, ?, ?, ?, ?, ?, ?)", message.Timestamp, message.Sender, message.Conversation, message.Status, message.Type, message.Body, 0, messageId)
+	return message, err
 }

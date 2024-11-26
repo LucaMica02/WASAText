@@ -53,7 +53,15 @@ type AppDatabase interface {
 	// Conversation Operations
 	GetPrivateConversationsByUserId(userId int) ([]ConversationId, error)
 	GetGroupConversationsByUserId(userId int) ([]ConversationId, error)
-	GetConversationByConversationId(conversationId int) (Conversation, error)
+	CheckIfConversationExistsByConversationId(conversationId int) (bool, error)
+	GetConversationByConversationId(conversationId int, userId int) (Conversation, error)
+	CreatePrivateConversation(userId_1 int, userId_2 int) (int, error)
+
+	// Message Operations
+	CheckIfMessageExistsByMessageId(messageId int) (bool, error)
+	CreateMessage(timestamp string, senderId int, conversationId int, status string, mexType string, content string, repliedTo int, forwardedFrom int) error
+	DeleteMessage(messageId int) error
+	ForwardMessage(messageId int, senderId int, conversationId int, timestamp string) (Message, error)
 
 	Ping() error
 }

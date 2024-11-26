@@ -18,7 +18,15 @@ func (rt *_router) Handler() http.Handler {
 	// Conversation API routes
 	rt.router.GET("/users/:userId/conversations", rt.getMyConversations)
 	rt.router.GET("/users/:userId/conversations/:conversationsId", rt.getConversation)
-	rt.router.POST("/conversations", rt.createConversation)
+	rt.router.POST("/users/:userId/conversations", rt.createConversation)
+
+	// Message API routes
+	rt.router.POST("/users/:userId/conversations/:conversationsId/messages", rt.sendMessage)
+	rt.router.DELETE("/users/:userId/conversations/:conversationsId/messages/:messageId", rt.deleteMessage)
+	rt.router.POST("/users/:userId/conversations/:conversationsId/messages/:messageId/forward", rt.forwardMessage)
+	rt.router.PUT("/conversations/:conversationsId/messages/:messageId/status", rt.getMyConversations)
+	rt.router.PUT("/conversations/:conversationsId/messages/:messageId/receivers/:userIdDest", rt.getMyConversations)
+	rt.router.PUT("/conversations/:conversationsId/messages/:messageId/readers/:userIdDest", rt.getMyConversations)
 
 	// Get Image route
 	rt.router.GET("/images", rt.getPhotoHandler)
