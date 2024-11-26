@@ -189,29 +189,6 @@ paths:
         "403": {$ref: '#/components/responses/Forbidden'}
         "404": {$ref: "#/components/responses/NotFound"}
         "500": {$ref: "#/components/responses/InternalServerError"}
-  /users/{userId}/conversations/{conversationId}:
-    parameters:
-      - $ref: "#/components/parameters/UserId"
-      - $ref: "#/components/parameters/ConversationId"
-    get:
-      tags: ["conversation"]
-      summary: Get user's conversation
-      description: |
-        Get the specified user's conversation. 
-        An user can access only to their conversations.
-      operationId: getConversation
-      responses:
-        "200":
-          description: User's conversation found and returned
-          content:
-            application/json:
-              schema: {$ref: "#/components/schemas/Conversation"}
-        "400": {$ref: "#/components/responses/BadRequest"}
-        "401": {$ref: "#/components/responses/Unauthorized"}
-        "403": {$ref: '#/components/responses/Forbidden'}
-        "404": {$ref: "#/components/responses/NotFound"}
-        "500": {$ref: "#/components/responses/InternalServerError"}
-  /conversations:
     post:
       tags: ["conversation"]
       summary: Create a new private conversation
@@ -243,9 +220,32 @@ paths:
         "403": {$ref: '#/components/responses/Forbidden'}
         "409": {$ref: "#/components/responses/Conflict"}
         "500": {$ref: "#/components/responses/InternalServerError"}
-        
-  /conversations/{conversationId}/messages:
+  /users/{userId}/conversations/{conversationId}:
     parameters:
+      - $ref: "#/components/parameters/UserId"
+      - $ref: "#/components/parameters/ConversationId"
+    get:
+      tags: ["conversation"]
+      summary: Get user's conversation
+      description: |
+        Get the specified user's conversation. 
+        An user can access only to their conversations.
+      operationId: getConversation
+      responses:
+        "200":
+          description: User's conversation found and returned
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/Conversation"}
+        "400": {$ref: "#/components/responses/BadRequest"}
+        "401": {$ref: "#/components/responses/Unauthorized"}
+        "403": {$ref: '#/components/responses/Forbidden'}
+        "404": {$ref: "#/components/responses/NotFound"}
+        "500": {$ref: "#/components/responses/InternalServerError"}
+        
+  /users/{userId}/conversations/{conversationId}/messages:
+    parameters:
+      - $ref: "#/components/parameters/UserId"
       - $ref: "#/components/parameters/ConversationId"
     post:
       tags: ["message"]
@@ -255,12 +255,6 @@ paths:
         The message could be both text or image.
         User can send message only in their conversation.
       operationId: sendMessage
-      parameters:
-        - name: replyTo
-          in: query
-          required: false
-          description: Message id of the message to reply
-          schema: {$ref: "#/components/schemas/ResourceId"}
       requestBody:
         description: Accepts a message that could be both text or image
         content:
@@ -278,8 +272,9 @@ paths:
         "403": {$ref: '#/components/responses/Forbidden'}
         "404": {$ref: "#/components/responses/NotFound"}
         "500": {$ref: "#/components/responses/InternalServerError"}
-  /conversations/{conversationId}/messages/{messageId}:
+  /users/{userId}/conversations/{conversationId}/messages/{messageId}:
     parameters:
+      - $ref: "#/components/parameters/UserId"
       - $ref: "#/components/parameters/ConversationId"
       - $ref: "#/components/parameters/MessageId"
     delete:
@@ -297,8 +292,9 @@ paths:
         "403": {$ref: '#/components/responses/Forbidden'}
         "404": {$ref: "#/components/responses/NotFound"}
         "500": {$ref: "#/components/responses/InternalServerError"}
-  /conversations/{conversationId}/messages/{messageId}/forward:
+  /users/{userId}/conversations/{conversationId}/messages/{messageId}/forward:
     parameters:
+      - $ref: "#/components/parameters/UserId"
       - $ref: "#/components/parameters/ConversationId"
       - $ref: "#/components/parameters/MessageId"
     post:
@@ -401,8 +397,9 @@ paths:
         "404": {$ref: "#/components/responses/NotFound"}
         "500": {$ref: "#/components/responses/InternalServerError"}
         
-  /conversations/{conversationId}/messages/{messageId}/comment:
+  /users/{userId}/conversations/{conversationId}/messages/{messageId}/comment:
     parameters:
+      - $ref: "#/components/parameters/UserId"
       - $ref: "#/components/parameters/ConversationId"
       - $ref: "#/components/parameters/MessageId"
     put:
@@ -451,7 +448,9 @@ paths:
         "404": {$ref: "#/components/responses/NotFound"}
         "500": {$ref: "#/components/responses/InternalServerError"}
   
-  /groups:
+  /users/{userId}/groups:
+    parameters:
+      - $ref: "#/components/parameters/UserId"
     post:
       tags: ["group"]
       summary: Create new group
@@ -476,10 +475,10 @@ paths:
         "401": {$ref: "#/components/responses/Unauthorized"}
         "403": {$ref: '#/components/responses/Forbidden'}
         "500": {$ref: "#/components/responses/InternalServerError"}
-  /groups/{groupId}/members/{userId}:
+  /users/{userId}/groups/{groupId}/members:
     parameters:
-      - $ref: "#/components/parameters/GroupId"
       - $ref: "#/components/parameters/UserId"
+      - $ref: "#/components/parameters/GroupId"
     put:
       tags: ["group"]
       summary: Add new member to a group
@@ -488,6 +487,12 @@ paths:
         An user can add a group member only if it is a participant.
         Users cannot join groups on their own.
       operationId: addToGroup
+      parameters:
+        - name: userId
+          in: query
+          required: true
+          description: userId to add
+          schema: {$ref: "#/components/schemas/ResourceId"}
       responses:
         "200":
           description: User already in the group
@@ -511,6 +516,12 @@ paths:
         Users have the option to leave a group at any time.
         Users can delete only himself from a group (a.k.a. leave group).
       operationId: leaveGroup
+      parameters:
+        - name: userId
+          in: query
+          required: true
+          description: userId to remove
+          schema: {$ref: "#/components/schemas/ResourceId"}
       responses:
         "204":
           description: Member leave the group successfully
@@ -519,8 +530,9 @@ paths:
         "403": {$ref: '#/components/responses/Forbidden'}
         "404": {$ref: "#/components/responses/NotFound"}
         "500": {$ref: "#/components/responses/InternalServerError"}
-  /groups/{groupId}/name:
+  /users/{userId}/groups/{groupId}/name:
     parameters:
+      - $ref: "#/components/parameters/UserId"
       - $ref: "#/components/parameters/GroupId"
     put:
       tags: ["group"]
@@ -546,8 +558,9 @@ paths:
         "403": {$ref: '#/components/responses/Forbidden'}
         "404": {$ref: "#/components/responses/NotFound"}
         "500": {$ref: "#/components/responses/InternalServerError"}
-  /groups/{groupId}/description:
+  /users/{userId}/groups/{groupId}/description:
     parameters:
+      - $ref: "#/components/parameters/UserId"
       - $ref: "#/components/parameters/GroupId"
     put:
       tags: ["group"]
@@ -573,8 +586,9 @@ paths:
         "403": {$ref: '#/components/responses/Forbidden'}
         "404": {$ref: "#/components/responses/NotFound"}
         "500": {$ref: "#/components/responses/InternalServerError"}
-  /groups/{groupId}/photo:
+  /users/{userId}/groups/{groupId}/photo:
     parameters:
+      - $ref: "#/components/parameters/UserId"
       - $ref: "#/components/parameters/GroupId"
     put:
       tags: ["group"]
@@ -644,7 +658,7 @@ components:
     PhotoUrl: 
       type: string
       format: uri
-      pattern: "^(https?:\/\/).*$"
+      pattern: "^.*$"
       minLength: 7      
       maxLength: 2048
       description: |
@@ -738,6 +752,8 @@ components:
           type: string
           format: date-time
         sender: {$ref: '#/components/schemas/ResourceId'}
+        repliedTo: {$ref: '#/components/schemas/ResourceId'}
+        forwardedFrom: {$ref: '#/components/schemas/ResourceId'}
         status: {$ref: '#/components/schemas/MessageStatus'}
         body:
           description: Message body could be text or image

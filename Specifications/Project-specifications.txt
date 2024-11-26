@@ -80,27 +80,26 @@
 - /users/{userId}/photo [setMyPhoto {PUT}] *
 
 [conversation]
-- /users/{userId}/conversations [getMyConversations {GET}] *
+- /users/{userId}/conversations [getMyConversations {GET}, createConversation {POST}] *
 - /users/{userId}/conversations/{conversationId} [getConversation {GET}] * 
-- /conversations [createConversation {POST}] *
 
 [message]
-- /conversations/{conversationId}/messages [sendMessage {POST}] *
-- /conversations/{conversationId}/messages/{messageId} [deleteMessage {DELETE}] *
-- /conversations/{conversationId}/messages/{messageId}/forward [forwardMessage {POST}] *
+- /users/{userId}/conversations/{conversationId}/messages [sendMessage {POST}] *
+- /users/{userId}/conversations/{conversationId}/messages/{messageId} [deleteMessage {DELETE}] *
+- /users/{userId}/conversations/{conversationId}/messages/{messageId}/forward [forwardMessage {POST}] *
 - /conversations/{conversationId}/messages/{messageId}/status [updateMessageStatus {PUT}] *
 - /conversations/{conversationId}/messages/{messageId}/receivers/{userId} [addReceiver {PUT}] *
 - /conversations/{conversationId}/messages/{messageId}/readers/{userId} [addReader {PUT}] *
 
 [comment]
-- /conversations/{conversationId}/messages/{messageId}/comments [commentMessage {PUT}, uncommentMessage {DELETE}] *
+- /users/{userId}/conversations/{conversationId}/messages/{messageId}/comments [commentMessage {PUT}, uncommentMessage {DELETE}] *
 
 [group]
-- /groups [createGroup {POST}] (groupId) *
-- /groups/{groupId}/members/{userId} [leaveGroup {DELETE}, addToGroup {PUT}] *
-- /groups/{groupId}/name [setGroupName {PUT}] *
-- /groups/{groupId}/description [setGroupDescription {PUT}] *
-- /groups/{groupId}/photo [setGroupPhoto {PUT}] *
+- /users/{userId}/groups [createGroup {POST}] (groupId) *
+- /users/{userId}/groups/{groupId}/members/{memberId} [leaveGroup {DELETE}, addToGroup {PUT}] *
+- /users/{userId}/groups/{groupId}/name [setGroupName {PUT}] *
+- /users/{userId}/groups/{groupId}/description [setGroupDescription {PUT}] *
+- /users/{userId}/groups/{groupId}/photo [setGroupPhoto {PUT}] *
 ################################################################
 
 # PARAMETERS
