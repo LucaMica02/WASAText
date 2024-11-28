@@ -42,9 +42,5 @@ func (rt *_router) Handler() http.Handler {
 
 	// Get Image route
 	rt.router.GET("/images", rt.getPhotoHandler)
-
-	// Special routes
-	rt.router.GET("/liveness", rt.liveness)
-
 	return rt.router
 }
