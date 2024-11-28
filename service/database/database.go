@@ -48,7 +48,7 @@ type AppDatabase interface {
 	GetUserByUsername(username string) (User, error)
 	GetAllUsers() ([]User, error)
 	UpdateUsername(username string, userId int) error
-	UpdatePhotoUrl(url string, userId int) error
+	UpdateUserPhotoUrl(url string, userId int) error
 
 	// Conversation Operations
 	GetPrivateConversationsByUserId(userId int) ([]ConversationId, error)
@@ -62,6 +62,27 @@ type AppDatabase interface {
 	CreateMessage(timestamp string, senderId int, conversationId int, status string, mexType string, content string, repliedTo int, forwardedFrom int) error
 	DeleteMessage(messageId int) error
 	ForwardMessage(messageId int, senderId int, conversationId int, timestamp string) (Message, error)
+	UpdateMessageStatus(messageId int, status string) error
+	AddReceiver(userId int, messageId int) error
+	AddReader(userId int, messageId int) error
+
+	// Comment Operations
+	CheckIfCommentExistsByCommentId(commentId int) (bool, error)
+	CheckIfCommentExists(senderId int, messageId int) (bool, error)
+	CheckIfIsUserComment(senderId int, commentId int) (bool, error)
+	UpdateComment(senderId int, messageId int, reaction string, timestamp string) error
+	AddComment(timestamp string, senderId int, messageId int, reaction string) error
+	DeleteComment(commentId int) error
+
+	// Group Operations
+	CheckIfGroupExistsByGroupId(groupId int) (bool, error)
+	CheckIfUserIsPartecipant(userId int, groupId int) (bool, error)
+	CreateGroupConversation(name string, description string, photoUrl string) (int, error)
+	AddUserToGroup(userId int, groupId int) error
+	LeaveGroup(userId int, groupId int) error
+	UpdateGroupName(groupId int, name string) error
+	UpdateGroupDescription(groupId int, description string) error
+	UpdateGroupPhotoUrl(url string, groupId int) error
 
 	Ping() error
 }

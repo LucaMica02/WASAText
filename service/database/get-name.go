@@ -71,7 +71,7 @@ func (db *appdbimpl) UpdateUsername(username string, userId int) error {
 	return err
 }
 
-func (db *appdbimpl) UpdatePhotoUrl(url string, userId int) error {
+func (db *appdbimpl) UpdateUserPhotoUrl(url string, userId int) error {
 	_, err := db.c.Exec("UPDATE User SET photoUrl = ? WHERE userId = ?", url, userId)
 	return err
 }
@@ -95,10 +95,6 @@ type Message struct {
 	Body          string `json:"body"`
 	RepliedTo     int    `json:"repliedTo"`
 	ForwardedFrom int    `json:"forwardedFrom"`
-}
-
-type Comment struct {
-	Emoji string `json:"emoji"`
 }
 
 func (db *appdbimpl) GetPrivateConversationsByUserId(userId int) ([]ConversationId, error) {
@@ -194,4 +190,99 @@ func (db *appdbimpl) ForwardMessage(messageId int, senderId int, conversationId 
 	message.ForwardedFrom = messageId
 	_, err := db.c.Exec("INSERT INTO Message (timestamp, senderId, conversationId, status, type, content, repliedTo, forwardedFrom) VALUES (?, ?, ?, ?, ?, ?, ?, ?)", message.Timestamp, message.Sender, message.Conversation, message.Status, message.Type, message.Body, 0, messageId)
 	return message, err
+}
+
+func (db *appdbimpl) UpdateMessageStatus(messageId int, status string) error {
+	_, err := db.c.Exec("UPDATE Message SET status = ? WHERE messageId = ?", status, messageId)
+	return err
+}
+
+func (db *appdbimpl) AddReceiver(userId int, messageId int) error {
+	_, err := db.c.Exec("INSERT INTO MessageReceivers(userId, messageId) VALUES (?, ?)", userId, messageId)
+	return err
+}
+
+func (db *appdbimpl) AddReader(userId int, messageId int) error {
+	_, err := db.c.Exec("INSERT INTO MessageReaders(userId, messageId) VALUES (?, ?)", userId, messageId)
+	return err
+}
+
+/* COMMENT */
+func (db *appdbimpl) CheckIfCommentExistsByCommentId(commentId int) (bool, error) {
+	var exists bool
+	err := db.c.QueryRow("SELECT EXISTS(SELECT 1 FROM Comment WHERE commentId = ?)", commentId).Scan(&exists)
+	return exists, err
+}
+
+func (db *appdbimpl) CheckIfCommentExists(senderId int, messageId int) (bool, error) {
+	var exists bool
+	err := db.c.QueryRow("SELECT EXISTS(SELECT 1 FROM Comment WHERE senderId = ? AND messageId = ?)", senderId, messageId).Scan(&exists)
+	return exists, err
+}
+
+func (db *appdbimpl) CheckIfIsUserComment(senderId int, commentId int) (bool, error) {
+	var exists bool
+	err := db.c.QueryRow("SELECT EXISTS(SELECT 1 FROM Comment WHERE senderId = ? AND commentId = ?)", senderId, commentId).Scan(&exists)
+	return exists, err
+}
+
+func (db *appdbimpl) UpdateComment(senderId int, messageId int, reaction string, timestamp string) error {
+	_, err := db.c.Exec("UPDATE Comment SET reaction = ?, timestamp = ? WHERE senderId = ? AND messageId = ?", reaction, timestamp, senderId, messageId)
+	return err
+}
+
+func (db *appdbimpl) AddComment(timestamp string, senderId int, messageId int, reaction string) error {
+	_, err := db.c.Exec("INSERT INTO Comment(timestamp, senderId, messageId, reaction) VALUES (?, ?, ?, ?)", timestamp, senderId, messageId, reaction)
+	return err
+}
+
+func (db *appdbimpl) DeleteComment(commentId int) error {
+	_, err := db.c.Exec("DELETE FROM Comment WHERE commentId = ?", commentId)
+	return err
+}
+
+/* GROUP */
+func (db *appdbimpl) CheckIfGroupExistsByGroupId(groupId int) (bool, error) {
+	var exists bool
+	err := db.c.QueryRow("SELECT EXISTS(SELECT 1 FROM GroupConversation WHERE groupId = ?)", groupId).Scan(&exists)
+	return exists, err
+}
+
+func (db *appdbimpl) CheckIfUserIsPartecipant(userId int, groupId int) (bool, error) {
+	var exists bool
+	err := db.c.QueryRow("SELECT EXISTS(SELECT 1 FROM UserGroup WHERE groupId = ? AND userId = ?)", groupId, userId).Scan(&exists)
+	return exists, err
+}
+
+func (db *appdbimpl) CreateGroupConversation(name string, description string, photoUrl string) (int, error) {
+	res, _ := db.c.Exec("INSERT INTO Conversation DEFAULT VALUES")
+	conversationId, _ := res.LastInsertId()
+	res, _ = db.c.Exec("INSERT INTO GroupConversation (name, description, photoUrl, conversationId) VALUES (?, ?, ?, ?)", name, description, photoUrl, conversationId)
+	groupId, err := res.LastInsertId()
+	return int(groupId), err
+}
+
+func (db *appdbimpl) AddUserToGroup(userId int, groupId int) error {
+	_, err := db.c.Exec("INSERT INTO UserGroup(userId, groupId) VALUES (?, ?)", userId, groupId)
+	return err
+}
+
+func (db *appdbimpl) LeaveGroup(userId int, groupId int) error {
+	_, err := db.c.Exec("DELETE FROM UserGroup WHERE userId = ? AND groupId = ?", userId, groupId)
+	return err
+}
+
+func (db *appdbimpl) UpdateGroupName(groupId int, name string) error {
+	_, err := db.c.Exec("UPDATE GroupConversation SET name = ? WHERE groupId = ?", name, groupId)
+	return err
+}
+
+func (db *appdbimpl) UpdateGroupDescription(groupId int, description string) error {
+	_, err := db.c.Exec("UPDATE GroupConversation SET description = ? WHERE groupId = ?", description, groupId)
+	return err
+}
+
+func (db *appdbimpl) UpdateGroupPhotoUrl(url string, groupId int) error {
+	_, err := db.c.Exec("UPDATE GroupConversation SET photoUrl = ? WHERE groupId = ?", url, groupId)
+	return err
 }

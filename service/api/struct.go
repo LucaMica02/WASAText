@@ -26,3 +26,30 @@ type Message struct {
 	RepliedTo     int    `json:"repliedTo"`
 	ForwardedFrom int    `json:"forwardedFrom"`
 }
+
+type Comment struct {
+	Emoji string `json:"emoji"`
+}
+
+type MessageStatus struct {
+	MessageStatus string `json:"messageStatus"`
+}
+
+type Group struct {
+	Name         string       `json:"groupName"`
+	Description  string       `json:"groupDescription"`
+	Photo        string       `json:"photoUrl"`
+	Partecipants []ResourceId `json:"partecipants"`
+}
+
+type GroupName struct {
+	GroupName string `json:"groupName"`
+}
+
+type GroupDescription struct {
+	GroupDescription string `json:"groupDescription"`
+}
+
+type PhotoUrl struct {
+	PhotoUrl string `json:"photoUrl"`
+}
