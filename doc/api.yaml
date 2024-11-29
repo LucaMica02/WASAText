@@ -79,12 +79,12 @@ paths:
           content:
             application/json:
               schema:
+                description: Array of User to return
                 type: array
                 items: {$ref: '#/components/schemas/User'}
                 minItems: 1
                 maxItems: 100
         "400": {$ref: "#/components/responses/BadRequest"}
-        "401": {$ref: "#/components/responses/Unauthorized"}
         "404": {$ref: "#/components/responses/NotFound"}
         "500": {$ref: "#/components/responses/InternalServerError"}
   /users/{userId}:
@@ -104,7 +104,6 @@ paths:
             application/json:
               schema: {$ref: "#/components/schemas/User"}
         "400": {$ref: "#/components/responses/BadRequest"}
-        "401": {$ref: "#/components/responses/Unauthorized"}
         "404": {$ref: "#/components/responses/NotFound"}
         "500": {$ref: "#/components/responses/InternalServerError"}
   /users/{userId}/username:
@@ -368,7 +367,7 @@ paths:
           description: New receiver added
           content:
             application/json:
-              schema: {$ref: "#/components/schemas/Username"}
+              schema: {$ref: "#/components/schemas/ResourceId"}
         "400": {$ref: "#/components/responses/BadRequest"}
         "401": {$ref: "#/components/responses/Unauthorized"}
         "403": {$ref: '#/components/responses/Forbidden'}
@@ -381,7 +380,7 @@ paths:
       - $ref: "#/components/parameters/UserId"
     put:
       tags: ["message"]
-      summary: Update message status
+      summary: Add a new reader
       description: |
         When a user enter in a chat he reads all the new messages
       operationId: addReader
@@ -390,7 +389,7 @@ paths:
           description: New reader added
           content:
             application/json:
-              schema: {$ref: "#/components/schemas/MessageStatus"}
+              schema: {$ref: "#/components/schemas/ResourceId"}
         "400": {$ref: "#/components/responses/BadRequest"}
         "401": {$ref: "#/components/responses/Unauthorized"}
         "403": {$ref: '#/components/responses/Forbidden'}
@@ -432,6 +431,12 @@ paths:
         "403": {$ref: '#/components/responses/Forbidden'}
         "404": {$ref: "#/components/responses/NotFound"}
         "500": {$ref: "#/components/responses/InternalServerError"}
+  /users/{userId}/conversations/{conversationId}/messages/{messageId}/comment/{commentId}:
+    parameters:
+      - $ref: "#/components/parameters/UserId"
+      - $ref: "#/components/parameters/ConversationId"
+      - $ref: "#/components/parameters/MessageId"
+      - $ref: "#/components/parameters/CommentId"
     delete:
       tags: ["comment"]
       summary: Delete a comment
@@ -494,16 +499,11 @@ paths:
           description: userId to add
           schema: {$ref: "#/components/schemas/ResourceId"}
       responses:
-        "200":
-          description: User already in the group
-          content:
-            application/json:
-              schema: {$ref: "#/components/schemas/Username"}
         "201":
           description: User added to the group
           content:
             application/json:
-              schema: {$ref: "#/components/schemas/Username"}
+              schema: {$ref: "#/components/schemas/ResourceId"}
         "400": {$ref: "#/components/responses/BadRequest"}
         "401": {$ref: "#/components/responses/Unauthorized"}
         "403": {$ref: '#/components/responses/Forbidden'}
@@ -516,12 +516,6 @@ paths:
         Users have the option to leave a group at any time.
         Users can delete only himself from a group (a.k.a. leave group).
       operationId: leaveGroup
-      parameters:
-        - name: userId
-          in: query
-          required: true
-          description: userId to remove
-          schema: {$ref: "#/components/schemas/ResourceId"}
       responses:
         "204":
           description: Member leave the group successfully
@@ -634,6 +628,12 @@ components:
       in: path
       required: true
       description: The unique message identifier
+      schema: {$ref: '#/components/schemas/ResourceId'}
+    CommentId:
+      name: commentId
+      in: path
+      required: true
+      description: The unique comment identifier
       schema: {$ref: '#/components/schemas/ResourceId'}
     GroupId:
       name: groupId
@@ -750,6 +750,10 @@ components:
           description: |
             The date and time in ISO 8601 format (e.g., 2023-11-04T14:23:00Z)
           type: string
+          pattern: '^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$'
+          minLength: 19
+          maxLength: 19
+          example: "2024-12-02 11:10:22"
           format: date-time
         sender: {$ref: '#/components/schemas/ResourceId'}
         repliedTo: {$ref: '#/components/schemas/ResourceId'}
@@ -763,14 +767,16 @@ components:
                 text:
                   type: string
                   description: Text content of the message
+                  pattern: '^.*?$'
                   minLength: 1
                   maxLength: 500
+                  example: "Sample Text"
               required: [text]
             - type: object
               properties:
                 image: {$ref: '#/components/schemas/PhotoUrl'}
               required: [image]
-      required: [timestamp, sender, reactions, status, receivers, readers, body]
+      required: [timestamp, sender, repliedTo, forwardedFrom, status, body]
     Comment:
       description: Object that represent the comment
       type: object
@@ -792,7 +798,7 @@ components:
         partecipants:
           description: array of group partecipants
           type: array
-          items: {$ref: "#/components/schemas/Username"}
+          items: {$ref: "#/components/schemas/ResourceId"}
           minItems: 1
           maxItems: 100
       required: [name, description, photo, partecipants]
