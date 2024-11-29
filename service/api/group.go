@@ -101,7 +101,7 @@ func (rt *_router) addToGroup(w http.ResponseWriter, r *http.Request, ps httprou
 	}
 
 	// valid request
-	userIdToAddString := r.URL.Query().Get("resourceId")
+	userIdToAddString := r.URL.Query().Get("userId")
 	userIdToAdd, err := strconv.Atoi(userIdToAddString)
 	if err != nil {
 		http.Error(w, "userId to add not valid", http.StatusBadRequest)

@@ -56,6 +56,11 @@ func (rt *_router) sendMessage(w http.ResponseWriter, r *http.Request, ps httpro
 	message.Conversation = conversationId
 	message.Status = "delivered"
 
+	// get the timestamp
+	time := time.Now()
+	timestamp := time.Format("2006-01-02 15:04:05")
+	message.Timestamp = timestamp
+
 	// create the message
 	if message.RepliedTo == 0 {
 		err = rt.db.CreateMessage(message.Timestamp, message.Sender, message.Conversation, message.Status, message.Type, message.Body)

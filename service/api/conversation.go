@@ -112,9 +112,15 @@ func (rt *_router) createConversation(w http.ResponseWriter, r *http.Request, ps
 	// constraint userId_1 < userId_2
 	var conversationId int
 	if users[0].ResourceId < users[1].ResourceId {
-		conversationId, _ = rt.db.CreatePrivateConversation(users[0].ResourceId, users[1].ResourceId)
+		conversationId, err = rt.db.CreatePrivateConversation(users[0].ResourceId, users[1].ResourceId)
+		if err != nil {
+			http.Error(w, "Error creating the conversation", http.StatusBadRequest)
+		}
 	} else {
-		conversationId, _ = rt.db.CreatePrivateConversation(users[1].ResourceId, users[0].ResourceId)
+		conversationId, err = rt.db.CreatePrivateConversation(users[1].ResourceId, users[0].ResourceId)
+		if err != nil {
+			http.Error(w, "Error creating the conversation", http.StatusBadRequest)
+		}
 	}
 
 	// return the conversation
