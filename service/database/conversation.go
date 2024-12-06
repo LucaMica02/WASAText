@@ -48,16 +48,25 @@ func (db *appdbimpl) GetConversationByConversationId(conversationId int, userId 
 	var conversation Conversation
 	var messages []Message
 	rows, err := db.c.Query("SELECT timestamp, senderId, status, type, content, repliedTo, forwardedFrom FROM Message WHERE conversationId = ?", conversationId)
+	if err != nil {
+		return conversation, err
+	}
 	for rows.Next() {
 		var message Message
-		rows.Scan(&message.Timestamp, &message.Sender, &message.Status, &message.Type, &message.Body, &message.RepliedTo, &message.ForwardedFrom)
+		err = rows.Scan(&message.Timestamp, &message.Sender, &message.Status, &message.Type, &message.Body, &message.RepliedTo, &message.ForwardedFrom)
+		if err != nil {
+			return conversation, err
+		}
 		messages = append(messages, message)
 	}
 	rows.Close()
 	conversation.Messages = messages
 	var name string
-	_ = db.c.QueryRow("SELECT name FROM GroupConversation WHERE conversationId = ?", conversationId).Scan(&name)
-	_ = db.c.QueryRow("SELECT u.username FROM PrivateConversation pc JOIN User u ON pc.userId_1 = u.userId OR pc.userId_2 = u.userId WHERE pc.conversationId = ? AND (u.userId != ?)", conversationId, userId).Scan(&name)
+	err = db.c.QueryRow("SELECT name FROM GroupConversation WHERE conversationId = ?", conversationId).Scan(&name)
+	if err != nil {
+		return conversation, err
+	}
+	err = db.c.QueryRow("SELECT u.username FROM PrivateConversation pc JOIN User u ON pc.userId_1 = u.userId OR pc.userId_2 = u.userId WHERE pc.conversationId = ? AND (u.userId != ?)", conversationId, userId).Scan(&name)
 	conversation.Name = name
 	return conversation, err
 }

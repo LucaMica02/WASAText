@@ -19,6 +19,16 @@ func (rt *_router) getMyConversations(w http.ResponseWriter, r *http.Request, ps
 		return
 	}
 
+	// auth
+	auth := r.Header.Get("Authorization")
+	if auth == "" {
+		http.Error(w, "auth token missing", http.StatusUnauthorized)
+		return
+	} else if auth != userIdString {
+		http.Error(w, "auth token not valid", http.StatusUnauthorized)
+		return
+	}
+
 	// check if userId exists
 	exists, err := rt.db.CheckIfUserExistsByUserId(userId)
 	if err != nil {
@@ -50,6 +60,16 @@ func (rt *_router) getConversation(w http.ResponseWriter, r *http.Request, ps ht
 	exists, _ := rt.db.CheckIfUserExistsByUserId(userId)
 	if !exists {
 		http.Error(w, "userId not found", http.StatusNotFound)
+		return
+	}
+
+	// auth
+	auth := r.Header.Get("Authorization")
+	if auth == "" {
+		http.Error(w, "auth token missing", http.StatusUnauthorized)
+		return
+	} else if auth != userIdString {
+		http.Error(w, "auth token not valid", http.StatusUnauthorized)
 		return
 	}
 
@@ -94,6 +114,16 @@ func (rt *_router) createConversation(w http.ResponseWriter, r *http.Request, ps
 	exists, _ := rt.db.CheckIfUserExistsByUserId(userId)
 	if !exists {
 		http.Error(w, "userId not found", http.StatusNotFound)
+		return
+	}
+
+	// auth
+	auth := r.Header.Get("Authorization")
+	if auth == "" {
+		http.Error(w, "auth token missing", http.StatusUnauthorized)
+		return
+	} else if auth != userIdString {
+		http.Error(w, "auth token not valid", http.StatusUnauthorized)
 		return
 	}
 

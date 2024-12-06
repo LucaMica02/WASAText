@@ -27,7 +27,10 @@ func (rt *_router) doLogin(w http.ResponseWriter, r *http.Request, ps httprouter
 		id, _ := rt.db.GetUserId(loginRequest.Username)
 		response := LoginResponse{ResourceId: id}
 		w.WriteHeader(http.StatusOK)
-		json.NewEncoder(w).Encode(response)
+		err = json.NewEncoder(w).Encode(response)
+		if err != nil {
+			http.Error(w, "Error encoding the response", http.StatusInternalServerError)
+		}
 	} else {
 		// create new user and return userId
 		_ = rt.db.CreateUser(loginRequest.Username)

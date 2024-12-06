@@ -28,6 +28,16 @@ func (rt *_router) createGroup(w http.ResponseWriter, r *http.Request, ps httpro
 		return
 	}
 
+	// auth
+	auth := r.Header.Get("Authorization")
+	if auth == "" {
+		http.Error(w, "auth token missing", http.StatusUnauthorized)
+		return
+	} else if auth != userIdString {
+		http.Error(w, "auth token not valid", http.StatusUnauthorized)
+		return
+	}
+
 	// valid request
 	var group Group
 	err = json.NewDecoder(r.Body).Decode(&group)
@@ -84,6 +94,16 @@ func (rt *_router) addToGroup(w http.ResponseWriter, r *http.Request, ps httprou
 	exists, _ := rt.db.CheckIfUserExistsByUserId(userId)
 	if !exists {
 		http.Error(w, "userId not found", http.StatusNotFound)
+		return
+	}
+
+	// auth
+	auth := r.Header.Get("Authorization")
+	if auth == "" {
+		http.Error(w, "auth token missing", http.StatusUnauthorized)
+		return
+	} else if auth != userIdString {
+		http.Error(w, "auth token not valid", http.StatusUnauthorized)
 		return
 	}
 
@@ -165,6 +185,16 @@ func (rt *_router) leaveGroup(w http.ResponseWriter, r *http.Request, ps httprou
 		return
 	}
 
+	// auth
+	auth := r.Header.Get("Authorization")
+	if auth == "" {
+		http.Error(w, "auth token missing", http.StatusUnauthorized)
+		return
+	} else if auth != userIdString {
+		http.Error(w, "auth token not valid", http.StatusUnauthorized)
+		return
+	}
+
 	// valid groupId
 	groupIdString := strings.Split(r.URL.Path, "/")[4]
 	groupId, err := strconv.Atoi(groupIdString)
@@ -212,6 +242,16 @@ func (rt *_router) setGroupName(w http.ResponseWriter, r *http.Request, ps httpr
 	exists, _ := rt.db.CheckIfUserExistsByUserId(userId)
 	if !exists {
 		http.Error(w, "userId not found", http.StatusNotFound)
+		return
+	}
+
+	// auth
+	auth := r.Header.Get("Authorization")
+	if auth == "" {
+		http.Error(w, "auth token missing", http.StatusUnauthorized)
+		return
+	} else if auth != userIdString {
+		http.Error(w, "auth token not valid", http.StatusUnauthorized)
 		return
 	}
 
@@ -278,6 +318,16 @@ func (rt *_router) setGroupDescription(w http.ResponseWriter, r *http.Request, p
 		return
 	}
 
+	// auth
+	auth := r.Header.Get("Authorization")
+	if auth == "" {
+		http.Error(w, "auth token missing", http.StatusUnauthorized)
+		return
+	} else if auth != userIdString {
+		http.Error(w, "auth token not valid", http.StatusUnauthorized)
+		return
+	}
+
 	// valid groupId
 	groupIdString := strings.Split(r.URL.Path, "/")[4]
 	groupId, err := strconv.Atoi(groupIdString)
@@ -338,6 +388,16 @@ func (rt *_router) setGroupPhoto(w http.ResponseWriter, r *http.Request, ps http
 	exists, _ := rt.db.CheckIfUserExistsByUserId(userId)
 	if !exists {
 		http.Error(w, "userId not found", http.StatusNotFound)
+		return
+	}
+
+	// auth
+	auth := r.Header.Get("Authorization")
+	if auth == "" {
+		http.Error(w, "auth token missing", http.StatusUnauthorized)
+		return
+	} else if auth != userIdString {
+		http.Error(w, "auth token not valid", http.StatusUnauthorized)
 		return
 	}
 

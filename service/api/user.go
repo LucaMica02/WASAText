@@ -59,6 +59,16 @@ func (rt *_router) getUser(w http.ResponseWriter, r *http.Request, ps httprouter
 		return
 	}
 
+	// auth
+	auth := r.Header.Get("Authorization")
+	if auth == "" {
+		http.Error(w, "auth token missing", http.StatusUnauthorized)
+		return
+	} else if auth != userIdString {
+		http.Error(w, "auth token not valid", http.StatusUnauthorized)
+		return
+	}
+
 	// check if userId exists
 	exists, err := rt.db.CheckIfUserExistsByUserId(userId)
 	if err != nil {
@@ -92,6 +102,16 @@ func (rt *_router) setMyUserName(w http.ResponseWriter, r *http.Request, ps http
 	userId, err := strconv.Atoi(userIdString)
 	if err != nil {
 		http.Error(w, "userId not valid", http.StatusBadRequest)
+		return
+	}
+
+	// auth
+	auth := r.Header.Get("Authorization")
+	if auth == "" {
+		http.Error(w, "auth token missing", http.StatusUnauthorized)
+		return
+	} else if auth != userIdString {
+		http.Error(w, "auth token not valid", http.StatusUnauthorized)
 		return
 	}
 
@@ -139,6 +159,16 @@ func (rt *_router) setMyPhoto(w http.ResponseWriter, r *http.Request, ps httprou
 	userId, err := strconv.Atoi(userIdString)
 	if err != nil {
 		http.Error(w, "userId not valid", http.StatusBadRequest)
+		return
+	}
+
+	// auth
+	auth := r.Header.Get("Authorization")
+	if auth == "" {
+		http.Error(w, "auth token missing", http.StatusUnauthorized)
+		return
+	} else if auth != userIdString {
+		http.Error(w, "auth token not valid", http.StatusUnauthorized)
 		return
 	}
 

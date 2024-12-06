@@ -25,6 +25,16 @@ func (rt *_router) commentMessage(w http.ResponseWriter, r *http.Request, ps htt
 		return
 	}
 
+	// auth
+	auth := r.Header.Get("Authorization")
+	if auth == "" {
+		http.Error(w, "auth token missing", http.StatusUnauthorized)
+		return
+	} else if auth != userIdString {
+		http.Error(w, "auth token not valid", http.StatusUnauthorized)
+		return
+	}
+
 	// valid conversationId
 	conversationIdString := strings.Split(r.URL.Path, "/")[4]
 	conversationId, err := strconv.Atoi(conversationIdString)
@@ -114,6 +124,16 @@ func (rt *_router) uncommentMessage(w http.ResponseWriter, r *http.Request, ps h
 	exists, _ := rt.db.CheckIfUserExistsByUserId(userId)
 	if !exists {
 		http.Error(w, "userId not found", http.StatusNotFound)
+		return
+	}
+
+	// auth
+	auth := r.Header.Get("Authorization")
+	if auth == "" {
+		http.Error(w, "auth token missing", http.StatusUnauthorized)
+		return
+	} else if auth != userIdString {
+		http.Error(w, "auth token not valid", http.StatusUnauthorized)
 		return
 	}
 

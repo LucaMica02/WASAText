@@ -24,12 +24,15 @@ func (db *appdbimpl) DeleteMessage(messageId int) error {
 
 func (db *appdbimpl) ForwardMessage(messageId int, senderId int, conversationId int, timestamp string) (Message, error) {
 	var message Message
-	_ = db.c.QueryRow("SELECT status, type, content FROM Message WHERE messageId = ?", messageId).Scan(&message.Status, &message.Type, &message.Body)
+	err := db.c.QueryRow("SELECT status, type, content FROM Message WHERE messageId = ?", messageId).Scan(&message.Status, &message.Type, &message.Body)
+	if err != nil {
+		return message, err
+	}
 	message.Timestamp = timestamp
 	message.Sender = senderId
 	message.Conversation = conversationId
 	message.ForwardedFrom = messageId
-	_, err := db.c.Exec("INSERT INTO Message (timestamp, senderId, conversationId, status, type, content, repliedTo, forwardedFrom) VALUES (?, ?, ?, ?, ?, ?, NULL, ?)", message.Timestamp, message.Sender, message.Conversation, message.Status, message.Type, message.Body, messageId)
+	_, err = db.c.Exec("INSERT INTO Message (timestamp, senderId, conversationId, status, type, content, repliedTo, forwardedFrom) VALUES (?, ?, ?, ?, ?, ?, NULL, ?)", message.Timestamp, message.Sender, message.Conversation, message.Status, message.Type, message.Body, messageId)
 	return message, err
 }
 
