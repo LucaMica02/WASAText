@@ -87,6 +87,7 @@ paths:
         "400": {$ref: "#/components/responses/BadRequest"}
         "404": {$ref: "#/components/responses/NotFound"}
         "500": {$ref: "#/components/responses/InternalServerError"}
+      security: []
   /users/{userId}:
     parameters:
       - $ref: "#/components/parameters/UserId"
@@ -351,6 +352,7 @@ paths:
         "403": {$ref: '#/components/responses/Forbidden'}
         "404": {$ref: "#/components/responses/NotFound"}
         "500": {$ref: "#/components/responses/InternalServerError"}
+      security: []
   /conversations/{conversationId}/messages/{messageId}/receivers/{userId}:
     parameters:
       - $ref: "#/components/parameters/ConversationId"
@@ -373,6 +375,7 @@ paths:
         "403": {$ref: '#/components/responses/Forbidden'}
         "404": {$ref: "#/components/responses/NotFound"}
         "500": {$ref: "#/components/responses/InternalServerError"}
+      security: []
   /conversations/{conversationId}/messages/{messageId}/readers/{userId}:
     parameters:
       - $ref: "#/components/parameters/ConversationId"
@@ -395,6 +398,7 @@ paths:
         "403": {$ref: '#/components/responses/Forbidden'}
         "404": {$ref: "#/components/responses/NotFound"}
         "500": {$ref: "#/components/responses/InternalServerError"}
+      security: []
         
   /users/{userId}/conversations/{conversationId}/messages/{messageId}/comment:
     parameters:
@@ -484,6 +488,11 @@ paths:
     parameters:
       - $ref: "#/components/parameters/UserId"
       - $ref: "#/components/parameters/GroupId"
+      - name: userId
+        in: query
+        required: true
+        description: userId to add
+        schema: {$ref: "#/components/schemas/ResourceId"}
     put:
       tags: ["group"]
       summary: Add new member to a group
@@ -492,12 +501,6 @@ paths:
         An user can add a group member only if it is a participant.
         Users cannot join groups on their own.
       operationId: addToGroup
-      parameters:
-        - name: userId
-          in: query
-          required: true
-          description: userId to add
-          schema: {$ref: "#/components/schemas/ResourceId"}
       responses:
         "201":
           description: User added to the group
@@ -784,6 +787,7 @@ components:
         emoji:
           description: Emoji that represent the comment
           type: string
+          pattern: '^.*?$'
           example: "😊"
           minLength: 1
           maxLength: 5
@@ -821,9 +825,10 @@ components:
     bearerAuth:
       description: |
         Authentication via Bearer Token. 
-        Include the token in the 'Authorization' header as 'Bearer <token>', obtained via the login endpoint. 
+        Include the token in the 'Authorization' header, obtained via the login endpoint. 
         The token allows access to secure endpoints and represents the user's permissions. 
         Public endpoints, which do not require authentication, can specify 'security: []'.
+        In this case the token is just the userId.
       type: http
       scheme: bearer
 
