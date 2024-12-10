@@ -8,12 +8,12 @@ func (db *appdbimpl) CheckIfMessageExistsByMessageId(messageId int) (bool, error
 }
 
 func (db *appdbimpl) CreateMessage(timestamp string, senderId int, conversationId int, status string, mexType string, content string) error {
-	_, err := db.c.Exec("INSERT INTO Message (timestamp, senderId, conversationId, status, type, content, repliedTo, forwardedFrom) VALUES (?, ?, ?, ?, ?, ?, NULL, NULL)", timestamp, senderId, conversationId, status, mexType, content)
+	_, err := db.c.Exec("INSERT INTO Message (timestamp, senderId, conversationId, status, type, content, repliedTo, forwardedFrom) VALUES (?, ?, ?, ?, ?, ?, 0, 0)", timestamp, senderId, conversationId, status, mexType, content)
 	return err
 }
 
 func (db *appdbimpl) ReplyToAMessage(timestamp string, senderId int, conversationId int, status string, mexType string, content string, repliedTo int) error {
-	_, err := db.c.Exec("INSERT INTO Message (timestamp, senderId, conversationId, status, type, content, repliedTo, forwardedFrom) VALUES (?, ?, ?, ?, ?, ?, ?, NULL)", timestamp, senderId, conversationId, status, mexType, content, repliedTo)
+	_, err := db.c.Exec("INSERT INTO Message (timestamp, senderId, conversationId, status, type, content, repliedTo, forwardedFrom) VALUES (?, ?, ?, ?, ?, ?, ?, 0)", timestamp, senderId, conversationId, status, mexType, content, repliedTo)
 	return err
 }
 

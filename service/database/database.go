@@ -128,12 +128,10 @@ func New(db *sql.DB) (AppDatabase, error) {
 			status TEXT CHECK (status IN ('delivered', 'received', 'read')) NOT NULL,
 			type TEXT CHECK (type IN ('text', 'image')) NOT NULL,
 			content TEXT NOT NULL,
-			repliedTo INTEGER,
-			forwardedFrom INTEGER,
+			repliedTo INTEGER NOT NULL,
+			forwardedFrom INTEGER NOT NULL,
 			FOREIGN KEY (senderId) REFERENCES User(userId),
-			FOREIGN KEY (conversationId) REFERENCES Conversation(conversationId),
-			FOREIGN KEY (repliedTo) REFERENCES Message(messageId),
-			FOREIGN KEY (forwardedFrom) REFERENCES Message(messageId));`
+			FOREIGN KEY (conversationId) REFERENCES Conversation(conversationId));`
 		_, err = db.Exec(sqlStmt)
 		if err != nil {
 			return nil, fmt.Errorf("error creating the message table: %w", err)

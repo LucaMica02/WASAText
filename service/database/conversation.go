@@ -63,7 +63,7 @@ func (db *appdbimpl) GetConversationByConversationId(conversationId int, userId 
 	conversation.Messages = messages
 	var name string
 	err = db.c.QueryRow("SELECT name FROM GroupConversation WHERE conversationId = ?", conversationId).Scan(&name)
-	if err != nil {
+	if err != nil && err.Error() != "sql: no rows in result set"{
 		return conversation, err
 	}
 	err = db.c.QueryRow("SELECT u.username FROM PrivateConversation pc JOIN User u ON pc.userId_1 = u.userId OR pc.userId_2 = u.userId WHERE pc.conversationId = ? AND (u.userId != ?)", conversationId, userId).Scan(&name)

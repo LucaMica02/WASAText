@@ -75,13 +75,13 @@ func (rt *_router) sendMessage(w http.ResponseWriter, r *http.Request, ps httpro
 	if message.RepliedTo == 0 {
 		err = rt.db.CreateMessage(message.Timestamp, message.Sender, message.Conversation, message.Status, message.Type, message.Body)
 		if err != nil {
-			http.Error(w, "Error creating the message", http.StatusInternalServerError)
+			http.Error(w, "Error creating the message: " + err.Error(), http.StatusInternalServerError)
 			return
 		}
 	} else { // is a reply
 		err = rt.db.ReplyToAMessage(message.Timestamp, message.Sender, message.Conversation, message.Status, message.Type, message.Body, message.RepliedTo)
 		if err != nil {
-			http.Error(w, "Error creating the message", http.StatusInternalServerError)
+			http.Error(w, "Error creating the message: " + err.Error(), http.StatusInternalServerError)
 			return
 		}
 	}

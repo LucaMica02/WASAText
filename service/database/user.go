@@ -26,7 +26,7 @@ func (db *appdbimpl) CreateUser(username string) error {
 
 func (db *appdbimpl) GetUserById(userId int) (User, error) {
 	var user User
-	err := db.c.QueryRow("SELECT username, photoUrl FROM User where userId = ?", userId).Scan(&user.Username, &user.PhotoUrl)
+	err := db.c.QueryRow("SELECT userId, username, photoUrl FROM User where userId = ?", userId).Scan(&user.ResourceId, &user.Username, &user.PhotoUrl)
 	return user, err
 }
 
@@ -37,7 +37,7 @@ func (db *appdbimpl) GetUserByUsername(username string) (User, error) {
 }
 
 func (db *appdbimpl) GetAllUsers() ([]User, error) {
-	rows, err := db.c.Query("SELECT username, photoUrl FROM User")
+	rows, err := db.c.Query("SELECT userId, username, photoUrl FROM User")
 	if err != nil {
 		return nil, err
 	}
@@ -46,7 +46,7 @@ func (db *appdbimpl) GetAllUsers() ([]User, error) {
 	var users []User
 	for rows.Next() {
 		var user User
-		if err := rows.Scan(&user.Username, &user.PhotoUrl); err != nil {
+		if err := rows.Scan(&user.ResourceId, &user.Username, &user.PhotoUrl); err != nil {
 			return nil, err
 		}
 		users = append(users, user)

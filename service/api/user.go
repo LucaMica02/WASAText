@@ -64,9 +64,6 @@ func (rt *_router) getUser(w http.ResponseWriter, r *http.Request, ps httprouter
 	if auth == "" {
 		http.Error(w, "auth token missing", http.StatusUnauthorized)
 		return
-	} else if auth != userIdString {
-		http.Error(w, "auth token not valid", http.StatusUnauthorized)
-		return
 	}
 
 	// check if userId exists
