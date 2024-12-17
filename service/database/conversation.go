@@ -63,7 +63,7 @@ func (db *appdbimpl) GetConversationByConversationId(conversationId int, userId 
 	conversation.Messages = messages
 	var name string
 	err = db.c.QueryRow("SELECT name FROM GroupConversation WHERE conversationId = ?", conversationId).Scan(&name)
-	if err != nil && err.Error() != "sql: no rows in result set"{
+	if err != nil && err.Error() != "sql: no rows in result set" {
 		return conversation, err
 	}
 	err = db.c.QueryRow("SELECT u.username FROM PrivateConversation pc JOIN User u ON pc.userId_1 = u.userId OR pc.userId_2 = u.userId WHERE pc.conversationId = ? AND (u.userId != ?)", conversationId, userId).Scan(&name)
@@ -72,8 +72,11 @@ func (db *appdbimpl) GetConversationByConversationId(conversationId int, userId 
 }
 
 func (db *appdbimpl) CreatePrivateConversation(userId_1 int, userId_2 int) (int, error) {
-	res, _ := db.c.Exec("INSERT INTO Conversation DEFAULT VALUES")
+	res, err := db.c.Exec("INSERT INTO Conversation DEFAULT VALUES") // HERE
+	if err != nil {
+		return -1, err
+	}
 	conversationId, _ := res.LastInsertId()
-	_, err := db.c.Exec("INSERT INTO PrivateConversation (conversationId, userId_1, userId_2) VALUES (?, ?, ?)", conversationId, userId_1, userId_2)
+	_, err = db.c.Exec("INSERT INTO PrivateConversation (conversationId, userId_1, userId_2) VALUES (?, ?, ?)", conversationId, userId_1, userId_2)
 	return int(conversationId), err
 }

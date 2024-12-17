@@ -14,8 +14,14 @@ func (db *appdbimpl) CheckIfUserIsPartecipant(userId int, groupId int) (bool, er
 }
 
 func (db *appdbimpl) CreateGroupConversation(name string, description string, photoUrl string) (int, error) {
-	res, _ := db.c.Exec("INSERT INTO Conversation DEFAULT VALUES")
-	conversationId, _ := res.LastInsertId()
+	res, err := db.c.Exec("INSERT INTO Conversation DEFAULT VALUES")
+	if err != nil {
+		return -1, err
+	}
+	conversationId, err := res.LastInsertId()
+	if err != nil {
+		return -1, err
+	}
 	res, _ = db.c.Exec("INSERT INTO GroupConversation (name, description, photoUrl, conversationId) VALUES (?, ?, ?, ?)", name, description, photoUrl, conversationId)
 	groupId, err := res.LastInsertId()
 	return int(groupId), err

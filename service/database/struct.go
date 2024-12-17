@@ -21,7 +21,7 @@ type Message struct {
 }
 
 type User struct {
-	ResourceId int  `json:"resourceId"`
-	Username string `json:"username"`
-	PhotoUrl string `json:"PhotoUrl"`
+	ResourceId int    `json:"resourceId"`
+	Username   string `json:"username"`
+	PhotoUrl   string `json:"PhotoUrl"`
 }
