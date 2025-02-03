@@ -30,6 +30,7 @@ export default {
         } else if (response.status === 200) {
           this.currentUser = response.data;
           this.currentUser["fullPhotoUrl"] = this.getImagePath();
+          console.log(this.currentUser["fullPhotoUrl"]);
         }
       } catch (error) {
         console.error("Error: ", error);
@@ -95,12 +96,9 @@ export default {
           alert("Server Error");
         } else if (response.status === 200) {
           this.newPhoto = null;
-          console.log(response.data["PhotoUrl"]);
           this.currentUser["PhotoUrl"] = response.data["PhotoUrl"];
-          console.log(this.getImagePath());
           this.currentUser["fullPhotoUrl"] = "";
           this.currentUser["fullPhotoUrl"] = this.getImagePath();
-          console.log(this.currentUser["fullPhotoUrl"]);
           this.fetchUser();
         }
       } catch (error) {

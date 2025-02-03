@@ -1,6 +1,5 @@
 <script setup>
 import { RouterLink, RouterView } from "vue-router";
-import SearchBar from "./components/SearchBar.vue";
 import Login from "./views/Login.vue";
 import { EventBus } from "./EventBus";
 </script>
@@ -15,15 +14,18 @@ export default {
     };
   },
   methods: {
-    getProfile() {
-      this.$router.replace("/profile");
-    },
     logout() {
       localStorage.setItem("username", "");
       localStorage.setItem("authToken", "");
       localStorage.setItem("isLoggedIn", "false");
       EventBus.isLoggedIn = false;
       this.$router.replace("/login");
+    },
+    getUsers() {
+      this.$router.replace("/users");
+    },
+    getProfile() {
+      this.$router.replace("/profile");
     },
     login() {
       this.$router.replace("/login");
@@ -49,9 +51,14 @@ export default {
         alt="image"
       /><b>WASAText</b></span
     >
-    <SearchBar />
     <button class="header-button" v-if="EventBus.isLoggedIn">New Group</button>
-    <button class="header-button" v-if="EventBus.isLoggedIn">Users</button>
+    <button
+      class="header-button"
+      v-if="EventBus.isLoggedIn"
+      @click="getUsers()"
+    >
+      Users
+    </button>
     <button
       class="header-button"
       v-if="EventBus.isLoggedIn"
