@@ -32,7 +32,7 @@ func (db *appdbimpl) ForwardMessage(messageId int, senderId int, conversationId 
 	message.Sender = senderId
 	message.Conversation = conversationId
 	message.ForwardedFrom = messageId
-	_, err = db.c.Exec("INSERT INTO Message (timestamp, senderId, conversationId, status, type, content, repliedTo, forwardedFrom) VALUES (?, ?, ?, ?, ?, ?, NULL, ?)", message.Timestamp, message.Sender, message.Conversation, message.Status, message.Type, message.Body, messageId)
+	_, err = db.c.Exec("INSERT INTO Message (timestamp, senderId, conversationId, status, type, content, repliedTo, forwardedFrom) VALUES (?, ?, ?, ?, ?, ?, 0, ?)", message.Timestamp, message.Sender, message.Conversation, message.Status, message.Type, message.Body, messageId)
 	return message, err
 }
 

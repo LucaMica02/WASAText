@@ -7,6 +7,8 @@ export default {
   },
   data() {
     return {
+      showForwardOptions: false,
+      forwardMessage: null,
       conversations: [],
       isLoading: true,
       selectedConversation: null,
@@ -19,6 +21,10 @@ export default {
     fetchCurrentUser() {
       this.currentUser["authToken"] = localStorage.getItem("authToken");
       this.currentUser["username"] = localStorage.getItem("username");
+    },
+    openForwardOptions(message) {
+      this.forwardMessage = message;
+      this.showForwardOptions = true;
     },
     // Load the user data
     async getUsers() {
@@ -76,12 +82,14 @@ export default {
             },
           }
         );
+        response.data.resourceId = conversationId;
         return response.data;
       } catch (error) {
         console.error("Error: ", error);
       }
     },
 
+    // Send a message
     async sendMessage(conversation) {
       try {
         const response = await this.$axios.post(
@@ -104,6 +112,108 @@ export default {
         this.getConversations();
         const res = await this.getConversation(conversation.resourceId);
         this.selectConversation(res);
+      } catch (error) {
+        console.error("Error: ", error);
+      }
+    },
+
+    // Forward a message
+    async forwardMessageToConversation(conversation) {
+      try {
+        const authToken = localStorage.getItem("authToken");
+        const requestBody = { resourceId: conversation.resourceId };
+        const response = await this.$axios.post(
+          `/users/${authToken}/conversations/${this.selectedConversation.resourceId}/messages/${this.forwardMessage.resourceId}/forward`,
+          requestBody,
+          {
+            headers: { Authorization: authToken },
+          }
+        );
+        if (response.status === 400) {
+          alert("Bad Request");
+        } else if (response.status === 401) {
+          alert("Access token missing");
+        } else if (response.status === 403) {
+          alert("Not permitted");
+        } else if (response.status === 404) {
+          alert("Message missing");
+        } else if (response.status === 500) {
+          alert("Server Error");
+        } else if (response.status === 201) {
+          alert("Forwarded");
+          let messageCopy = { ...this.forwardMessage };
+          messageCopy.sender = authToken;
+          if (conversation.messages === null) {
+            conversation.messages = [messageCopy];
+          } else {
+            conversation.messages.push(messageCopy);
+          }
+          this.showForwardOptions = false;
+          this.forwardMessage = null;
+        }
+      } catch (error) {
+        console.error("Error: ", error);
+      }
+    },
+
+    // Delete a message
+    async deleteMessage(index) {
+      try {
+        console.log(this.selectedConversation);
+        const authToken = localStorage.getItem("authToken");
+        const response = await this.$axios.delete(
+          `/users/${authToken}/conversations/${this.selectedConversation.resourceId}/messages/${this.selectedConversation.messages[index].resourceId}`,
+          {
+            headers: { Authorization: authToken },
+          }
+        );
+        if (response.status === 400) {
+          alert("Bad Request");
+        } else if (response.status === 401) {
+          alert("Access token missing");
+        } else if (response.status === 403) {
+          alert("Not permitted");
+        } else if (response.status === 404) {
+          alert("Message missing");
+        } else if (response.status === 500) {
+          alert("Server Error");
+        } else if (response.status === 204) {
+          this.selectedConversation.messages.splice(index, 1);
+        }
+      } catch (error) {
+        console.error("Error: ", error);
+      }
+    },
+
+    // Comment a message
+    async commentMessage(message) {
+      try {
+        const requestBody = { emoji: "LIKE" };
+        const authToken = localStorage.getItem("authToken");
+        const response = await this.$axios.put(
+          `/users/${authToken}/conversations/${this.selectedConversation.resourceId}/messages/${message.resourceId}/comment`,
+          requestBody,
+          {
+            headers: { Authorization: authToken },
+          }
+        );
+        if (response.status === 400) {
+          alert("Bad Request");
+        } else if (response.status === 401) {
+          alert("Access token missing");
+        } else if (response.status === 403) {
+          alert("Not permitted");
+        } else if (response.status === 404) {
+          alert("Message missing");
+        } else if (response.status === 500) {
+          alert("Server Error");
+        } else if (response.status === 200 || response.status === 201) {
+          this.getConversations();
+          const res = await this.getConversation(
+            this.selectedConversation.resourceId
+          );
+          this.selectConversation(res);
+        }
       } catch (error) {
         console.error("Error: ", error);
       }
@@ -142,6 +252,20 @@ export default {
       </ul>
     </div>
 
+    <!-- show conversation list when click on forward -->
+    <div v-if="showForwardOptions" class="forward-options">
+      <h3>Select a conversation to forward the message:</h3>
+      <div
+        v-for="(conversation, index) in conversations"
+        :key="index"
+        class="conversation-item"
+      >
+        <span @click="forwardMessageToConversation(conversation)">
+          {{ conversation.conversationName }}
+        </span>
+      </div>
+    </div>
+
     <!-- This is where the selected conversation details will be displayed -->
     <div class="conversation-detail" v-if="selectedConversation">
       <div class="messages-container">
@@ -152,6 +276,8 @@ export default {
             :key="index"
           >
             <p>
+              <span v-if="message.status === 'received'"> ✔️ </span>
+              <span v-if="message.status === 'read'"> ✔️✔️ </span>
               <strong
                 >{{
                   usernames[message.sender] === currentUser["username"]
@@ -160,6 +286,20 @@ export default {
                 }}:</strong
               >
               {{ message.body }}
+              <!-- if is user's message the user can delete the message -->
+              <span
+                v-if="usernames[message.sender] === currentUser['username']"
+                class="delete-icon"
+                @click="deleteMessage(index)"
+              >
+                &#10006;
+              </span>
+              <span class="forward-icon" @click="openForwardOptions(message)">
+                &#8594;
+              </span>
+              <span class="comment-icon" @click="commentMessage(message)">
+                &#x2764;{{ message.comments }}
+              </span>
             </p>
           </div>
         </div>
@@ -216,5 +356,58 @@ export default {
 .conversations-list li {
   cursor: pointer;
   margin-bottom: 10px;
+}
+
+.delete-icon {
+  cursor: pointer;
+  color: red;
+  margin-left: 10px;
+  font-size: 20px;
+}
+
+.delete-icon:hover {
+  color: darkred;
+}
+
+.forward-icon {
+  cursor: pointer;
+  color: blue;
+  margin-left: 10px;
+  font-size: 20px;
+}
+
+.forward-icon:hover {
+  color: darkblue;
+}
+
+.forward-options h3 {
+  font-size: 16px;
+  margin-bottom: 10px;
+  color: #613b3b;
+  font-weight: normal;
+}
+
+.conversation-item {
+  padding: 8px;
+  margin: 4px 0;
+  cursor: pointer;
+  font-size: 14px;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+}
+
+.conversation-item:hover {
+  background-color: #f0f0f0;
+}
+
+.comment-icon {
+  cursor: pointer;
+  color: black;
+  margin-left: 10px;
+  font-size: 20px;
+}
+
+.comment-icon:hover {
+  color: darkgray;
 }
 </style>

@@ -10,6 +10,7 @@ type Conversation struct {
 }
 
 type Message struct {
+	ResourceId    int    `json:"resourceId"`
 	Timestamp     string `json:"timestamp"`
 	Sender        int    `json:"sender"`
 	Conversation  int    `json:"conversation"`
@@ -18,6 +19,7 @@ type Message struct {
 	Body          string `json:"body"`
 	RepliedTo     int    `json:"repliedTo"`
 	ForwardedFrom int    `json:"forwardedFrom"`
+	Comments      int    `json:"comments"`
 }
 
 type User struct {

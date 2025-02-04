@@ -47,13 +47,13 @@ func (db *appdbimpl) CheckIfConversationExistsByConversationId(conversationId in
 func (db *appdbimpl) GetConversationByConversationId(conversationId int, userId int) (Conversation, error) {
 	var conversation Conversation
 	var messages []Message
-	rows, err := db.c.Query("SELECT timestamp, senderId, status, type, content, repliedTo, forwardedFrom FROM Message WHERE conversationId = ?", conversationId)
+	rows, err := db.c.Query("SELECT m.messageId, m.timestamp, m.senderId, m.status, m.type, m.content, m.repliedTo, m.forwardedFrom, count(c.messageId) FROM Message m FULL JOIN Comment c ON m.messageId = c.messageId WHERE conversationId = ? group by m.messageId", conversationId)
 	if err != nil {
 		return conversation, err
 	}
 	for rows.Next() {
 		var message Message
-		err = rows.Scan(&message.Timestamp, &message.Sender, &message.Status, &message.Type, &message.Body, &message.RepliedTo, &message.ForwardedFrom)
+		err = rows.Scan(&message.ResourceId, &message.Timestamp, &message.Sender, &message.Status, &message.Type, &message.Body, &message.RepliedTo, &message.ForwardedFrom, &message.Comments)
 		if err != nil {
 			return conversation, err
 		}
@@ -72,7 +72,7 @@ func (db *appdbimpl) GetConversationByConversationId(conversationId int, userId 
 }
 
 func (db *appdbimpl) CreatePrivateConversation(userId_1 int, userId_2 int) (int, error) {
-	res, err := db.c.Exec("INSERT INTO Conversation DEFAULT VALUES") // HERE
+	res, err := db.c.Exec("INSERT INTO Conversation DEFAULT VALUES") 
 	if err != nil {
 		return -1, err
 	}
