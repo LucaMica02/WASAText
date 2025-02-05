@@ -61,6 +61,7 @@ export default {
           );
           conversation.resourceId = resource["resourceId"];
           this.conversations.push(conversation);
+          console.log(conversation.isPrivate);
         }
       } catch (error) {
         console.error("Error: ", error);
@@ -185,6 +186,31 @@ export default {
       }
     },
 
+    async uncommentMessage(message) {
+      try {
+        const authToken = localStorage.getItem("authToken");
+        const response = await this.$axios.delete(
+          `/users/${authToken}/conversations/${this.selectedConversation.resourceId}/messages/${message.resourceId}/comment`,
+          {
+            headers: { Authorization: authToken },
+          }
+        );
+        if (response.status === 400) {
+          alert("Bad Request");
+        } else if (response.status === 401) {
+          alert("Access token missing");
+        } else if (response.status === 404) {
+          alert("Resource missing");
+        } else if (response.status === 500) {
+          alert("Server Error");
+        } else if (response.status === 204) {
+          alert("Comment Deleted");
+        }
+      } catch (error) {
+        console.error("Error: ", error);
+      }
+    },
+
     // Comment a message
     async commentMessage(message) {
       try {
@@ -204,18 +230,24 @@ export default {
         } else if (response.status === 403) {
           alert("Not permitted");
         } else if (response.status === 404) {
-          alert("Message missing");
+          alert("Resource missing");
         } else if (response.status === 500) {
           alert("Server Error");
-        } else if (response.status === 200 || response.status === 201) {
-          this.getConversations();
-          const res = await this.getConversation(
-            this.selectedConversation.resourceId
-          );
-          this.selectConversation(res);
+        } else if (response.status === 201) {
+          alert("Comment Added");
+        } else if (response.status === 200) {
+          // delete the comment
+          this.uncommentMessage(message);
         }
       } catch (error) {
         console.error("Error: ", error);
+      } finally {
+        // update the view
+        this.getConversations();
+        const res = await this.getConversation(
+          this.selectedConversation.resourceId
+        );
+        this.selectConversation(res);
       }
     },
 
@@ -223,6 +255,12 @@ export default {
     selectConversation(conversation) {
       this.selectedConversation = conversation;
       this.getConversation(conversation.resourceId);
+    },
+
+    // Go in the group info page
+    goToGroupInfo() {
+      localStorage.setItem("group", JSON.stringify(this.selectedConversation));
+      this.$router.replace("/groupInfo");
     },
   },
   mounted() {
@@ -269,7 +307,16 @@ export default {
     <!-- This is where the selected conversation details will be displayed -->
     <div class="conversation-detail" v-if="selectedConversation">
       <div class="messages-container">
-        <h2>{{ selectedConversation.conversationName }}</h2>
+        <h2 class="conversation-title">
+          {{ selectedConversation.conversationName }}
+        </h2>
+        <span
+          class="group-info-title"
+          v-if="!selectedConversation.isPrivate"
+          @click="goToGroupInfo()"
+        >
+          GroupInfo
+        </span>
         <div v-if="selectedConversation.messages">
           <div
             v-for="(message, index) in selectedConversation.messages"
@@ -329,6 +376,19 @@ export default {
   display: flex;
   justify-content: space-between;
   padding: 20px;
+}
+
+.conversation-title {
+  display: inline;
+}
+
+.group-info-title {
+  font-size: 12px;
+  color: darkgreen;
+}
+
+.group-info-title:hover {
+  color: rgb(1, 50, 1);
 }
 
 .conversations-list {

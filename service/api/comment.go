@@ -164,31 +164,14 @@ func (rt *_router) uncommentMessage(w http.ResponseWriter, r *http.Request, ps h
 	}
 
 	// valid commentId
-	commentIdString := strings.Split(r.URL.Path, "/")[8]
-	commentId, err := strconv.Atoi(commentIdString)
-	if err != nil {
-		http.Error(w, "commentId not valid", http.StatusBadRequest)
-		return
-	}
-	exists, _ = rt.db.CheckIfCommentExistsByCommentId(commentId)
+	exists, _ = rt.db.CheckIfCommentExists(userId, messageId)
 	if !exists {
 		http.Error(w, "commentId not found", http.StatusNotFound)
 		return
 	}
 
-	// check if is a user comment
-	isUserComment, err := rt.db.CheckIfIsUserComment(userId, commentId)
-	if err != nil {
-		http.Error(w, "Error checking if is user comment", http.StatusInternalServerError)
-		return
-	}
-	if !isUserComment {
-		http.Error(w, "is not a user comment", http.StatusUnauthorized)
-		return
-	}
-
 	// delete the comment
-	err = rt.db.DeleteComment(commentId)
+	err = rt.db.DeleteComment(userId, messageId)
 	if err != nil {
 		http.Error(w, "Error deleting the comment", http.StatusInternalServerError)
 		return

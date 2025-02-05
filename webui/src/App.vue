@@ -1,13 +1,9 @@
 <script setup>
 import { RouterLink, RouterView } from "vue-router";
-import Login from "./views/Login.vue";
 import { EventBus } from "./EventBus";
 </script>
 <script>
 export default {
-  components: {
-    Login,
-  },
   data() {
     return {
       isLoggedIn: localStorage.getItem("isLoggedIn") === "true",

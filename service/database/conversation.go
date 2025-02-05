@@ -21,7 +21,7 @@ func (db *appdbimpl) GetPrivateConversationsByUserId(userId int) ([]Conversation
 }
 
 func (db *appdbimpl) GetGroupConversationsByUserId(userId int) ([]ConversationId, error) {
-	rows, err := db.c.Query("SELECT conversationId FROM GroupConversation gc JOIN UserGroup ug ON gc.groupId = ug.groupId WHERE userId = ?", userId)
+	rows, err := db.c.Query("SELECT gc.groupId FROM GroupConversation gc JOIN UserGroup ug ON gc.groupId = ug.groupId WHERE userId = ?", userId)
 	if err != nil {
 		return nil, err
 	}
@@ -61,13 +61,24 @@ func (db *appdbimpl) GetConversationByConversationId(conversationId int, userId 
 	}
 	rows.Close()
 	conversation.Messages = messages
-	var name string
-	err = db.c.QueryRow("SELECT name FROM GroupConversation WHERE conversationId = ?", conversationId).Scan(&name)
+	var name, description, photoUrl string
+	var isPrivate bool
+	_ = db.c.QueryRow("SELECT name FROM GroupConversation WHERE groupId = ?", conversationId).Scan(&name)
+	_ = db.c.QueryRow("SELECT description FROM GroupConversation WHERE groupId = ?", conversationId).Scan(&description)
+	err = db.c.QueryRow("SELECT photoUrl FROM GroupConversation WHERE groupId = ?", conversationId).Scan(&photoUrl)
 	if err != nil && err.Error() != "sql: no rows in result set" {
 		return conversation, err
 	}
+	if err != nil && err.Error() == "sql: no rows in result set" {
+		isPrivate = true
+	} else {
+		isPrivate = false
+	}
 	err = db.c.QueryRow("SELECT u.username FROM PrivateConversation pc JOIN User u ON pc.userId_1 = u.userId OR pc.userId_2 = u.userId WHERE pc.conversationId = ? AND (u.userId != ?)", conversationId, userId).Scan(&name)
 	conversation.Name = name
+	conversation.Description = description
+	conversation.IsPrivate = isPrivate
+	conversation.PhotoUrl = photoUrl
 	return conversation, err
 }
 

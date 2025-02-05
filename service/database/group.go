@@ -22,9 +22,8 @@ func (db *appdbimpl) CreateGroupConversation(name string, description string, ph
 	if err != nil {
 		return -1, err
 	}
-	res, _ = db.c.Exec("INSERT INTO GroupConversation (name, description, photoUrl, conversationId) VALUES (?, ?, ?, ?)", name, description, photoUrl, conversationId)
-	groupId, err := res.LastInsertId()
-	return int(groupId), err
+	_, err = db.c.Exec("INSERT INTO GroupConversation (groupId, name, description, photoUrl) VALUES (?, ?, ?, ?)", conversationId, name, description, photoUrl)
+	return int(conversationId), err
 }
 
 func (db *appdbimpl) AddUserToGroup(userId int, groupId int) error {

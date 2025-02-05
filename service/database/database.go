@@ -38,12 +38,10 @@ type AppDatabase interface {
 	AddReader(userId int, messageId int) error
 
 	// Comment Operations
-	CheckIfCommentExistsByCommentId(commentId int) (bool, error)
 	CheckIfCommentExists(senderId int, messageId int) (bool, error)
-	CheckIfIsUserComment(senderId int, commentId int) (bool, error)
 	UpdateComment(senderId int, messageId int, reaction string, timestamp string) error
 	AddComment(timestamp string, senderId int, messageId int, reaction string) error
-	DeleteComment(commentId int) error
+	DeleteComment(senderId int, commentId int) error
 
 	// Group Operations
 	CheckIfGroupExistsByGroupId(groupId int) (bool, error)

@@ -472,12 +472,13 @@ func (rt *_router) setGroupPhoto(w http.ResponseWriter, r *http.Request, ps http
 		return
 	}
 
+	// get the conversation
+	conversation, _ := rt.db.GetConversationByConversationId(groupId, userId)
+
 	// return the photoUrl
-	var photoUrl PhotoUrl
-	photoUrl.PhotoUrl = filePath
 	w.Header().Set("content-type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	err = json.NewEncoder(w).Encode(photoUrl)
+	err = json.NewEncoder(w).Encode(conversation)
 	if err != nil {
 		http.Error(w, "Error encoding the response", http.StatusInternalServerError)
 	}

@@ -30,7 +30,7 @@ func (rt *_router) Handler() http.Handler {
 
 	// Comment API routes
 	rt.router.PUT("/users/:userId/conversations/:conversationsId/messages/:messageId/comment", rt.commentMessage)
-	rt.router.DELETE("/users/:userId/conversations/:conversationsId/messages/:messageId/comment/:commentId", rt.uncommentMessage)
+	rt.router.DELETE("/users/:userId/conversations/:conversationsId/messages/:messageId/comment", rt.uncommentMessage)
 
 	// Group API routes
 	rt.router.POST("/users/:userId/groups", rt.createGroup)

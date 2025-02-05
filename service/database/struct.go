@@ -5,8 +5,11 @@ type ConversationId struct {
 }
 
 type Conversation struct {
-	Name     string    `json:"conversationName"`
-	Messages []Message `json:"messages"`
+	Name        string    `json:"conversationName"`
+	Description string    `json:"description"`
+	Messages    []Message `json:"messages"`
+	IsPrivate   bool      `json:"isPrivate"`
+	PhotoUrl    string    `json:"photoUrl"`
 }
 
 type Message struct {

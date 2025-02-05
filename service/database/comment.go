@@ -1,21 +1,9 @@
 package database
 
 /* COMMENT */
-func (db *appdbimpl) CheckIfCommentExistsByCommentId(commentId int) (bool, error) {
-	var exists bool
-	err := db.c.QueryRow("SELECT EXISTS(SELECT 1 FROM Comment WHERE commentId = ?)", commentId).Scan(&exists)
-	return exists, err
-}
-
 func (db *appdbimpl) CheckIfCommentExists(senderId int, messageId int) (bool, error) {
 	var exists bool
 	err := db.c.QueryRow("SELECT EXISTS(SELECT 1 FROM Comment WHERE senderId = ? AND messageId = ?)", senderId, messageId).Scan(&exists)
-	return exists, err
-}
-
-func (db *appdbimpl) CheckIfIsUserComment(senderId int, commentId int) (bool, error) {
-	var exists bool
-	err := db.c.QueryRow("SELECT EXISTS(SELECT 1 FROM Comment WHERE senderId = ? AND commentId = ?)", senderId, commentId).Scan(&exists)
 	return exists, err
 }
 
@@ -29,7 +17,7 @@ func (db *appdbimpl) AddComment(timestamp string, senderId int, messageId int, r
 	return err
 }
 
-func (db *appdbimpl) DeleteComment(commentId int) error {
-	_, err := db.c.Exec("DELETE FROM Comment WHERE commentId = ?", commentId)
+func (db *appdbimpl) DeleteComment(senderId int, commentId int) error {
+	_, err := db.c.Exec("DELETE FROM Comment WHERE senderId = ? AND messageId = ?", senderId, commentId)
 	return err
 }
