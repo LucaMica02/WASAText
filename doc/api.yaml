@@ -465,7 +465,7 @@ paths:
           description: Group name updated
           content:
             application/json:
-              schema: {$ref: "#/components/schemas/GroupName"}
+              schema: {$ref: "#/components/schemas/Group"}
         "400": {$ref: "#/components/responses/BadRequest"}
         "401": {$ref: "#/components/responses/Unauthorized"}
         "403": {$ref: '#/components/responses/Forbidden'}
@@ -493,7 +493,7 @@ paths:
           description: Group description updated
           content:
             application/json:
-              schema: {$ref: "#/components/schemas/GroupDescription"}
+              schema: {$ref: "#/components/schemas/Group"}
         "400": {$ref: "#/components/responses/BadRequest"}
         "401": {$ref: "#/components/responses/Unauthorized"}
         "403": {$ref: '#/components/responses/Forbidden'}
@@ -521,7 +521,7 @@ paths:
           description: Group photo updated
           content:
             application/json:
-              schema: {$ref: "#/components/schemas/PhotoUrl"}
+              schema: {$ref: "#/components/schemas/Group"}
         "400": {$ref: "#/components/responses/BadRequest"}
         "401": {$ref: "#/components/responses/Unauthorized"}
         "403": {$ref: '#/components/responses/Forbidden'}
