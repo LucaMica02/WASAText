@@ -149,7 +149,7 @@ func (rt *_router) addToGroup(w http.ResponseWriter, r *http.Request, ps httprou
 		return
 	}
 	if userIdToAddIsPartecipant {
-		http.Error(w, "User id to add already a group partecipant", http.StatusBadRequest)
+		http.Error(w, "User id to add already a group partecipant", http.StatusOK)
 		return
 	}
 
@@ -295,10 +295,13 @@ func (rt *_router) setGroupName(w http.ResponseWriter, r *http.Request, ps httpr
 		return
 	}
 
+	// get the conversation
+	conversation, _ := rt.db.GetConversationByConversationId(groupId, userId)
+
 	// return the resourceId
 	w.Header().Set("content-type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	err = json.NewEncoder(w).Encode(groupName)
+	err = json.NewEncoder(w).Encode(conversation)
 	if err != nil {
 		http.Error(w, "Error encoding the response", http.StatusInternalServerError)
 	}
@@ -368,10 +371,13 @@ func (rt *_router) setGroupDescription(w http.ResponseWriter, r *http.Request, p
 		return
 	}
 
+	// get the conversation
+	conversation, _ := rt.db.GetConversationByConversationId(groupId, userId)
+
 	// return the resourceId
 	w.Header().Set("content-type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	err = json.NewEncoder(w).Encode(groupDescription)
+	err = json.NewEncoder(w).Encode(conversation)
 	if err != nil {
 		http.Error(w, "Error encoding the response", http.StatusInternalServerError)
 	}

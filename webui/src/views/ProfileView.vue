@@ -36,6 +36,8 @@ export default {
         console.error("Error: ", error);
       }
     },
+
+    // Update the username
     async updateUsername() {
       try {
         const response = await this.$axios.put(
@@ -54,7 +56,7 @@ export default {
         } else if (response.status === 404) {
           alert("User not found");
         } else if (response.status === 409) {
-          alert("Username not valid");
+          alert("Username already taken");
         } else if (response.status === 500) {
           alert("Server Error");
         } else if (response.status === 200) {
@@ -64,6 +66,9 @@ export default {
         }
       } catch (error) {
         console.error("Error: ", error);
+        if (error.response.status === 409) {
+          alert("Username already taken");
+        }
       }
     },
     async updatePhoto() {

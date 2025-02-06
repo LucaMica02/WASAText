@@ -10,6 +10,8 @@ export default {
       newGroupName: "",
       newGroupDescription: "",
       newPhoto: null,
+      showUserToAdd: false,
+      users: {},
     };
   },
   methods: {
@@ -20,16 +22,40 @@ export default {
       console.log(this.groupConversation);
     },
 
+    // Show the user to add options
+    openUserToAdd() {
+      this.showUserToAdd = true;
+    },
+
+    // Get all the users
+    async fetchUsers() {
+      try {
+        const response = await this.$axios.get(`/users`, {
+          headers: { Authorization: localStorage.getItem("authToken") },
+        });
+        if (response.status === 400) {
+          alert("Bad Request");
+        } else if (response.status === 404) {
+          alert("User not found");
+        } else if (response.status === 500) {
+          alert("Server Error");
+        } else if (response.status === 200) {
+          this.users = response.data;
+        }
+      } catch (error) {
+        console.error("Error: ", error);
+      }
+    },
+
     // Update the group name
     async updateGroupName() {
       try {
+        const authToken = localStorage.getItem("authToken");
         const response = await this.$axios.put(
-          `/users/${localStorage.getItem("authToken")}/groups/${
-            this.groupConversation.resourceId
-          }/name`,
+          `/users/${authToken}/groups/${this.groupConversation.resourceId}/name`,
           { groupName: this.newGroupName },
           {
-            headers: { Authorization: localStorage.getItem("authToken") },
+            headers: { Authorization: authToken },
           }
         );
         if (response.status === 400) {
@@ -43,9 +69,10 @@ export default {
         } else if (response.status === 500) {
           alert("Server Error");
         } else if (response.status === 200) {
-          this.groupConversation.conversationName = this.newGroupName;
           this.newGroupName = "";
-          localStorage.setItem("group", JSON.stringify(this.groupConversation));
+          response.data.resourceId = this.groupConversation.resourceId;
+          localStorage.setItem("group", JSON.stringify(response.data));
+          this.fetchGroup();
         }
       } catch (error) {
         console.error("Error: ", error);
@@ -75,9 +102,10 @@ export default {
         } else if (response.status === 500) {
           alert("Server Error");
         } else if (response.status === 200) {
-          this.groupConversation.description = this.newGroupDescription;
           this.newGroupDescription = "";
-          localStorage.setItem("group", JSON.stringify(this.groupConversation));
+          response.data.resourceId = this.groupConversation.resourceId;
+          localStorage.setItem("group", JSON.stringify(response.data));
+          this.fetchGroup();
         }
       } catch (error) {
         console.error("Error: ", error);
@@ -117,11 +145,9 @@ export default {
           alert("Server Error");
         } else if (response.status === 200) {
           this.newPhoto = null;
-          console.log("Response ", response.data.photoUrl);
-          this.groupConversation.photoUrl = response.data.photoUrl;
-          this.groupConversation.photoUrl = this.getImagePath();
-          console.log("Final: ", this.groupConversation.photoUrl);
-          localStorage.setItem("group", JSON.stringify(this.groupConversation));
+          response.data.resourceId = this.groupConversation.resourceId;
+          localStorage.setItem("group", JSON.stringify(response.data));
+          this.fetchGroup();
         }
       } catch (error) {
         console.error("Error: ", error);
@@ -158,6 +184,39 @@ export default {
       }
     },
 
+    // Add member
+    async addMember(user) {
+      try {
+        const authToken = localStorage.getItem("authToken");
+        console.log(authToken);
+        const response = await this.$axios.put(
+          `/users/${authToken}/groups/${this.groupConversation.resourceId}/members?userId=${user.resourceId}`,
+          { body: "SenzaQuestoNonFunzionaNonSoPerchè" },
+          {
+            headers: { Authorization: authToken },
+          }
+        );
+        if (response.status === 400) {
+          alert("Bad Request");
+        } else if (response.status === 401) {
+          alert("Invalid auth");
+        } else if (response.status === 403) {
+          alert("Not authorized");
+        } else if (response.status === 404) {
+          alert("Group not found");
+        } else if (response.status === 500) {
+          alert("Server Error");
+        } else if (response.status === 200) {
+          alert("User already in the group");
+        } else if (response.status === 201) {
+          alert("Member Added Successfully");
+          this.showUserToAdd = false;
+        }
+      } catch (error) {
+        console.error("Error: ", error);
+      }
+    },
+
     // Handle file selection
     handleFileUpload(event) {
       const file = event.target.files[0];
@@ -182,6 +241,7 @@ export default {
   },
   mounted() {
     this.fetchGroup();
+    this.fetchUsers();
   },
 };
 </script>
@@ -238,6 +298,17 @@ export default {
       </div>
 
       <button class="header-button" @click="leaveGroup()">Leave Group</button>
+      <button class="header-button" @click="openUserToAdd()">Add Member</button>
+    </div>
+
+    <!-- show user list when -->
+    <div v-if="showUserToAdd" class="user-list">
+      <h3>Select a user to add:</h3>
+      <div v-for="(user, index) in users" :key="index" class="user-item">
+        <span @click="addMember(user)">
+          {{ "@" + user.username }}
+        </span>
+      </div>
     </div>
   </div>
   <main><RouterView /></main>

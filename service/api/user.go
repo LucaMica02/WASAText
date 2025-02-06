@@ -132,7 +132,7 @@ func (rt *_router) setMyUserName(w http.ResponseWriter, r *http.Request, ps http
 	}
 	err = rt.db.UpdateUsername(username.Username, userId)
 	if err != nil {
-		http.Error(w, "username not unique", http.StatusBadRequest)
+		http.Error(w, "username not unique", http.StatusConflict)
 		return
 	}
 	user, err := rt.db.GetUserById(userId)

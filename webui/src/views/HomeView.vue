@@ -15,6 +15,7 @@ export default {
       newMessage: "",
       usernames: {},
       currentUser: {},
+      users: [],
     };
   },
   methods: {
@@ -35,6 +36,7 @@ export default {
           },
         });
         const users = response.data;
+        this.users = response.data;
         for (let user of users) {
           this.usernames[user.resourceId] = user.username;
         }
@@ -61,7 +63,6 @@ export default {
           );
           conversation.resourceId = resource["resourceId"];
           this.conversations.push(conversation);
-          console.log(conversation.isPrivate);
         }
       } catch (error) {
         console.error("Error: ", error);
@@ -160,7 +161,6 @@ export default {
     // Delete a message
     async deleteMessage(index) {
       try {
-        console.log(this.selectedConversation);
         const authToken = localStorage.getItem("authToken");
         const response = await this.$axios.delete(
           `/users/${authToken}/conversations/${this.selectedConversation.resourceId}/messages/${this.selectedConversation.messages[index].resourceId}`,
@@ -251,6 +251,52 @@ export default {
       }
     },
 
+    // start a new chat with the user
+    async startNewChat(user) {
+      try {
+        const userId = localStorage.getItem("authToken");
+        const requestBody = [userId, user.resourceId].map((id) => ({
+          resourceId: parseInt(id),
+        }));
+        const response = await this.$axios.post(
+          `/users/${userId}/conversations`,
+          requestBody,
+          {
+            headers: { Authorization: userId },
+          }
+        );
+        if (response.status === 400) {
+          alert("Bad Request");
+        } else if (response.status === 401) {
+          alert("Access token missing");
+        } else if (response.status === 403) {
+          alert("Not permitted");
+        } else if (response.status === 409) {
+          alert("Conversation already exists");
+        } else if (response.status === 500) {
+          alert("Server Error");
+        } else if (response.status === 201) {
+          alert("Conversation created");
+          return response.data;
+        }
+      } catch (error) {
+        console.error("Error: ", error);
+      }
+    },
+
+    // If not exists create the conversation then forward the message
+    forwardMessageToUserConversation(user) {
+      var conversation = this.conversations.find(
+        (conv) => conv.conversationName === user.username
+      );
+      if (conversation) {
+        this.forwardMessageToConversation(conversation);
+      } else {
+        conversation = this.startNewChat(user);
+        this.forwardMessageToConversation(conversation);
+      }
+    },
+
     // Select a conversation to view in detail
     selectConversation(conversation) {
       this.selectedConversation = conversation;
@@ -293,14 +339,27 @@ export default {
     <!-- show conversation list when click on forward -->
     <div v-if="showForwardOptions" class="forward-options">
       <h3>Select a conversation to forward the message:</h3>
+      <h4>Groups:</h4>
       <div
-        v-for="(conversation, index) in conversations"
+        v-for="(conversation, index) in conversations.filter(
+          (c) => !c.isPrivate
+        )"
         :key="index"
         class="conversation-item"
+        @click="forwardMessageToConversation(conversation)"
       >
-        <span @click="forwardMessageToConversation(conversation)">
-          {{ conversation.conversationName }}
-        </span>
+        {{ conversation.conversationName }}
+      </div>
+      <h4>Users:</h4>
+      <div
+        v-for="user in users.filter(
+          (u) => u.resourceId != currentUser.authToken
+        )"
+        :key="index"
+        class="conversation-item"
+        @click="forwardMessageToUserConversation(user)"
+      >
+        {{ user.username }}
       </div>
     </div>
 
@@ -310,13 +369,13 @@ export default {
         <h2 class="conversation-title">
           {{ selectedConversation.conversationName }}
         </h2>
-        <span
-          class="group-info-title"
+        <button
+          class="header-button"
           v-if="!selectedConversation.isPrivate"
           @click="goToGroupInfo()"
         >
           GroupInfo
-        </span>
+        </button>
         <div v-if="selectedConversation.messages">
           <div
             v-for="(message, index) in selectedConversation.messages"

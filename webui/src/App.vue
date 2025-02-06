@@ -23,6 +23,9 @@ export default {
     getProfile() {
       this.$router.replace("/profile");
     },
+    createNewGroup() {
+      this.$router.replace("/newGroup");
+    },
     login() {
       this.$router.replace("/login");
     },
@@ -47,7 +50,13 @@ export default {
         alt="image"
       /><b>WASAText</b></span
     >
-    <button class="header-button" v-if="EventBus.isLoggedIn">New Group</button>
+    <button
+      class="header-button"
+      v-if="EventBus.isLoggedIn"
+      @click="createNewGroup()"
+    >
+      New Group
+    </button>
     <button
       class="header-button"
       v-if="EventBus.isLoggedIn"

@@ -17,6 +17,10 @@ func (db *appdbimpl) GetPrivateConversationsByUserId(userId int) ([]Conversation
 		}
 		conversations = append(conversations, conversation)
 	}
+	// check rows.Err
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
 	return conversations, nil
 }
 
@@ -34,6 +38,10 @@ func (db *appdbimpl) GetGroupConversationsByUserId(userId int) ([]ConversationId
 			return nil, err
 		}
 		conversations = append(conversations, conversation)
+	}
+	// check rows.Err
+	if err := rows.Err(); err != nil {
+		return nil, err
 	}
 	return conversations, nil
 }
@@ -60,6 +68,10 @@ func (db *appdbimpl) GetConversationByConversationId(conversationId int, userId 
 		messages = append(messages, message)
 	}
 	rows.Close()
+	// check rows.Err
+	if err := rows.Err(); err != nil {
+		return conversation, err
+	}
 	conversation.Messages = messages
 	var name, description, photoUrl string
 	var isPrivate bool

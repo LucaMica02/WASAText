@@ -22,7 +22,7 @@ func (db *appdbimpl) CreateGroupConversation(name string, description string, ph
 	if err != nil {
 		return -1, err
 	}
-	_, err = db.c.Exec("INSERT INTO GroupConversation (groupId, name, description, photoUrl) VALUES (?, ?, ?, ?)", conversationId, name, description, photoUrl)
+	_, err = db.c.Exec("INSERT INTO GroupConversation (groupId, name, description, photoUrl) VALUES (?, ?, ?, ?)", conversationId, name, description, "images/default_image.png")
 	return int(conversationId), err
 }
 

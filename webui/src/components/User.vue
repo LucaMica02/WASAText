@@ -16,7 +16,6 @@ export default {
         const requestBody = [userId, this.user.resourceId].map((id) => ({
           resourceId: parseInt(id),
         }));
-        console.log(requestBody);
         const response = await this.$axios.post(
           `/users/${userId}/conversations`,
           requestBody,
