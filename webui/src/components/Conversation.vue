@@ -11,11 +11,21 @@ export default {
   <div class="conversation-item">
     <div class="conversation-name">
       <strong>{{ conversation.conversationName }}</strong>
+      <img
+        :src="conversation.photoUrl"
+        alt="Profile Photo"
+        class="profile-photo"
+      />
     </div>
     <div class="conversation-info">
       <span v-if="conversation.messages && conversation.messages.length > 0">
         Last message:
         {{ conversation.messages[conversation.messages.length - 1].body }}
+        <div class="timestamp-prop">
+          {{
+            conversation.messages[conversation.messages.length - 1].timestamp
+          }}
+        </div>
       </span>
       <span v-else>No messages yet</span>
     </div>
@@ -44,5 +54,18 @@ export default {
 .conversation-info {
   font-size: 0.9rem;
   color: #777;
+}
+
+.profile-photo {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid #4e73df;
+}
+
+.timestamp-prop {
+  margin-left: 5px;
+  font-size: 10px;
 }
 </style>

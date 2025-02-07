@@ -154,10 +154,10 @@ func (rt *_router) createConversation(w http.ResponseWriter, r *http.Request, ps
 	}
 
 	// return the conversation
-	conversations, _ := rt.db.GetConversationByConversationId(conversationId, userId)
+	conversation, _ := rt.db.GetConversationByConversationId(conversationId, userId)
 	w.Header().Set("content-type", "application/json")
 	w.WriteHeader(http.StatusCreated)
-	err = json.NewEncoder(w).Encode(conversations)
+	err = json.NewEncoder(w).Encode(conversation)
 	if err != nil {
 		http.Error(w, "Error encoding the response", http.StatusInternalServerError)
 	}

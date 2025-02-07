@@ -5,6 +5,7 @@ type ConversationId struct {
 }
 
 type Conversation struct {
+	ResourceId  int       `json:"resourceId"`
 	Name        string    `json:"conversationName"`
 	Description string    `json:"description"`
 	Messages    []Message `json:"messages"`
@@ -22,7 +23,7 @@ type Message struct {
 	Body          string `json:"body"`
 	RepliedTo     int    `json:"repliedTo"`
 	ForwardedFrom int    `json:"forwardedFrom"`
-	Comments      int    `json:"comments"`
+	Comments      string `json:"comments"`
 }
 
 type User struct {

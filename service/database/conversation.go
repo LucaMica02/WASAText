@@ -55,7 +55,7 @@ func (db *appdbimpl) CheckIfConversationExistsByConversationId(conversationId in
 func (db *appdbimpl) GetConversationByConversationId(conversationId int, userId int) (Conversation, error) {
 	var conversation Conversation
 	var messages []Message
-	rows, err := db.c.Query("SELECT m.messageId, m.timestamp, m.senderId, m.status, m.type, m.content, m.repliedTo, m.forwardedFrom, count(c.messageId) FROM Message m FULL JOIN Comment c ON m.messageId = c.messageId WHERE conversationId = ? group by m.messageId", conversationId)
+	rows, err := db.c.Query("SELECT m.messageId, m.timestamp, m.senderId, m.status, m.type, m.content, m.repliedTo, m.forwardedFrom, IFNULL(GROUP_CONCAT(u.username), '') FROM Message m LEFT JOIN Comment c ON m.messageId = c.messageId LEFT JOIN User u on c.senderId = u.userId WHERE conversationId = ? GROUP BY m.messageId", conversationId)
 	if err != nil {
 		return conversation, err
 	}
@@ -86,7 +86,9 @@ func (db *appdbimpl) GetConversationByConversationId(conversationId int, userId 
 	} else {
 		isPrivate = false
 	}
-	err = db.c.QueryRow("SELECT u.username FROM PrivateConversation pc JOIN User u ON pc.userId_1 = u.userId OR pc.userId_2 = u.userId WHERE pc.conversationId = ? AND (u.userId != ?)", conversationId, userId).Scan(&name)
+	_ = db.c.QueryRow("SELECT u.username FROM PrivateConversation pc JOIN User u ON pc.userId_1 = u.userId OR pc.userId_2 = u.userId WHERE pc.conversationId = ? AND (u.userId != ?)", conversationId, userId).Scan(&name)
+	err = db.c.QueryRow("SELECT u.photoUrl FROM PrivateConversation pc JOIN User u ON pc.userId_1 = u.userId OR pc.userId_2 = u.userId WHERE pc.conversationId = ? AND (u.userId != ?)", conversationId, userId).Scan(&photoUrl)
+	conversation.ResourceId = conversationId
 	conversation.Name = name
 	conversation.Description = description
 	conversation.IsPrivate = isPrivate
@@ -95,7 +97,7 @@ func (db *appdbimpl) GetConversationByConversationId(conversationId int, userId 
 }
 
 func (db *appdbimpl) CreatePrivateConversation(userId_1 int, userId_2 int) (int, error) {
-	res, err := db.c.Exec("INSERT INTO Conversation DEFAULT VALUES") 
+	res, err := db.c.Exec("INSERT INTO Conversation DEFAULT VALUES")
 	if err != nil {
 		return -1, err
 	}

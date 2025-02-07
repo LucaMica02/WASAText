@@ -16,6 +16,7 @@ export default {
       usernames: {},
       currentUser: {},
       users: [],
+      replyTo: 0,
     };
   },
   methods: {
@@ -56,14 +57,28 @@ export default {
           }
         );
 
-        this.conversations = [];
+        const localConversations = [];
         for (const resource of response.data) {
           const conversation = await this.getConversation(
             resource["resourceId"]
           );
           conversation.resourceId = resource["resourceId"];
-          this.conversations.push(conversation);
+          conversation.photoUrl = this.getImagePath(conversation.photoUrl);
+          localConversations.push(conversation);
         }
+        localConversations.sort((a, b) => {
+          const lastMessageA = a.messages
+            ? new Date(a.messages[a.messages.length - 1].timestamp)
+            : new Date(0);
+          const lastMessageB = b.messages
+            ? new Date(b.messages[b.messages.length - 1].timestamp)
+            : new Date(0);
+          return lastMessageB - lastMessageA;
+        });
+        this.conversations = localConversations;
+        this.selectedConversation = await this.getConversation(
+          this.selectedConversation.resourceId
+        );
       } catch (error) {
         console.error("Error: ", error);
       } finally {
@@ -99,7 +114,7 @@ export default {
             conversation.resourceId
           }/messages`,
           {
-            repliedTo: 0,
+            repliedTo: this.replyTo,
             forwardedFrom: 0,
             type: "text",
             body: this.newMessage,
@@ -111,6 +126,7 @@ export default {
           }
         );
         this.newMessage = "";
+        this.replyTo = 0;
         this.getConversations();
         const res = await this.getConversation(conversation.resourceId);
         this.selectConversation(res);
@@ -152,6 +168,9 @@ export default {
           }
           this.showForwardOptions = false;
           this.forwardMessage = null;
+          this.selectedConversation = await this.getConversation(
+            conversation.resourceId
+          );
         }
       } catch (error) {
         console.error("Error: ", error);
@@ -203,8 +222,6 @@ export default {
           alert("Resource missing");
         } else if (response.status === 500) {
           alert("Server Error");
-        } else if (response.status === 204) {
-          alert("Comment Deleted");
         }
       } catch (error) {
         console.error("Error: ", error);
@@ -233,8 +250,6 @@ export default {
           alert("Resource missing");
         } else if (response.status === 500) {
           alert("Server Error");
-        } else if (response.status === 201) {
-          alert("Comment Added");
         } else if (response.status === 200) {
           // delete the comment
           this.uncommentMessage(message);
@@ -285,22 +300,38 @@ export default {
     },
 
     // If not exists create the conversation then forward the message
-    forwardMessageToUserConversation(user) {
+    async forwardMessageToUserConversation(user) {
       var conversation = this.conversations.find(
         (conv) => conv.conversationName === user.username
       );
       if (conversation) {
         this.forwardMessageToConversation(conversation);
       } else {
-        conversation = this.startNewChat(user);
+        conversation = await this.startNewChat(user);
         this.forwardMessageToConversation(conversation);
+        this.conversations.push(conversation);
       }
+    },
+
+    // Select message to reply
+    selectMessageToReply(message) {
+      this.replyTo =
+        this.replyTo === message.resourceId ? 0 : message.resourceId;
     },
 
     // Select a conversation to view in detail
     selectConversation(conversation) {
+      this.replyTo = 0;
       this.selectedConversation = conversation;
       this.getConversation(conversation.resourceId);
+    },
+
+    // Return the message content
+    getOriginalMessage(messageId) {
+      const message = this.selectedConversation.messages.find(
+        (m) => m.resourceId == messageId
+      );
+      return message ? message.body : "Message cancelled";
     },
 
     // Go in the group info page
@@ -308,9 +339,23 @@ export default {
       localStorage.setItem("group", JSON.stringify(this.selectedConversation));
       this.$router.replace("/groupInfo");
     },
+
+    // Return full image path
+    getImagePath(path) {
+      return this.$axios["defaults"]["baseURL"] + "/images?path=" + path;
+    },
+
+    startPolling() {
+      this.getConversations(); // Ottieni subito le conversazioni iniziali
+
+      // Imposta il polling ogni 5000ms (5 secondi)
+      this.pollingInterval = setInterval(() => {
+        this.getConversations();
+      }, 1000);
+    },
   },
   mounted() {
-    this.getConversations();
+    this.startPolling();
     this.fetchCurrentUser();
     this.getUsers();
   },
@@ -352,7 +397,7 @@ export default {
       </div>
       <h4>Users:</h4>
       <div
-        v-for="user in users.filter(
+        v-for="(user, index) in users.filter(
           (u) => u.resourceId != currentUser.authToken
         )"
         :key="index"
@@ -381,32 +426,49 @@ export default {
             v-for="(message, index) in selectedConversation.messages"
             :key="index"
           >
-            <p>
-              <span v-if="message.status === 'received'"> ✔️ </span>
-              <span v-if="message.status === 'read'"> ✔️✔️ </span>
-              <strong
-                >{{
-                  usernames[message.sender] === currentUser["username"]
-                    ? "You"
-                    : usernames[message.sender]
-                }}:</strong
+            <div :class="{ 'reply-message': message.repliedTo !== 0 }">
+              <span v-if="message.repliedTo !== 0"
+                ><strong>Replied to:</strong>
+                {{ getOriginalMessage(message.repliedTo) }}</span
               >
-              {{ message.body }}
-              <!-- if is user's message the user can delete the message -->
-              <span
-                v-if="usernames[message.sender] === currentUser['username']"
-                class="delete-icon"
-                @click="deleteMessage(index)"
-              >
-                &#10006;
-              </span>
-              <span class="forward-icon" @click="openForwardOptions(message)">
-                &#8594;
-              </span>
-              <span class="comment-icon" @click="commentMessage(message)">
-                &#x2764;{{ message.comments }}
-              </span>
-            </p>
+              <p>
+                <span v-if="message.status === 'received'"> ✔️ </span>
+                <span v-if="message.status === 'read'"> ✔️✔️ </span>
+                <strong
+                  >{{
+                    usernames[message.sender] === currentUser["username"]
+                      ? "You"
+                      : usernames[message.sender]
+                  }}:</strong
+                >
+                {{ message.body }}
+                <!-- if is user's message the user can delete the message -->
+                <span
+                  v-if="usernames[message.sender] === currentUser['username']"
+                  class="delete-icon"
+                  @click="deleteMessage(index)"
+                >
+                  &#10006;
+                </span>
+                <span class="forward-icon" @click="openForwardOptions(message)">
+                  &#8594;
+                </span>
+                <button
+                  class="header-button"
+                  @click="selectMessageToReply(message)"
+                >
+                  reply
+                </button>
+                <span v-if="message.resourceId === replyTo"> &#x25C9; </span>
+                <span class="comment-icon" @click="commentMessage(message)">
+                  &#x2764;{{ message.comments }}
+                </span>
+                <span v-if="message.forwardedFrom !== 0" class="forwarded-mark">
+                  <b><i>*Forwarded</i></b>
+                </span>
+                <span class="timestamp-prop"> {{ message.timestamp }} </span>
+              </p>
+            </div>
           </div>
         </div>
         <div v-else>
@@ -528,5 +590,24 @@ export default {
 
 .comment-icon:hover {
   color: darkgray;
+}
+
+.reply-message {
+  margin-left: 20px;
+  background-color: #f0f0f0;
+  border-radius: 5px;
+  padding: 5px;
+}
+
+.forwarded-mark {
+  font-size: 10px;
+  margin-left: 10px;
+  color: darkred;
+}
+
+.timestamp-prop {
+  margin-left: 5px;
+  font-size: 10px;
+  display: block;
 }
 </style>
