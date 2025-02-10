@@ -50,3 +50,9 @@ func (db *appdbimpl) UpdateGroupPhotoUrl(url string, groupId int) error {
 	_, err := db.c.Exec("UPDATE GroupConversation SET photoUrl = ? WHERE groupId = ?", url, groupId)
 	return err
 }
+
+func (db *appdbimpl) GetMembersCount(groupId int) (int, error) {
+	var count int
+	err := db.c.QueryRow("SELECT COUNT(userId) FROM UserGroup GROUP BY groupId HAVING groupId = ?", groupId).Scan(&count)
+	return count, err
+}

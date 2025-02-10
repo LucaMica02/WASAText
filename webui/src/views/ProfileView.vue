@@ -113,7 +113,6 @@ export default {
     // Handle file selection
     handleFileUpload(event) {
       const file = event.target.files[0];
-      console.log(file.type);
       if (file && file.type.startsWith("image/")) {
         this.newPhoto = file;
       } else {

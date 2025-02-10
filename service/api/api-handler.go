@@ -24,7 +24,6 @@ func (rt *_router) Handler() http.Handler {
 	rt.router.POST("/users/:userId/conversations/:conversationsId/messages", rt.sendMessage)
 	rt.router.DELETE("/users/:userId/conversations/:conversationsId/messages/:messageId", rt.deleteMessage)
 	rt.router.POST("/users/:userId/conversations/:conversationsId/messages/:messageId/forward", rt.forwardMessage)
-	rt.router.PUT("/conversations/:conversationsId/messages/:messageId/status", rt.updateMessageStatus)
 	rt.router.PUT("/conversations/:conversationsId/messages/:messageId/receivers/:userIdDest", rt.addReceiver)
 	rt.router.PUT("/conversations/:conversationsId/messages/:messageId/readers/:userIdDest", rt.addReader)
 
@@ -40,7 +39,8 @@ func (rt *_router) Handler() http.Handler {
 	rt.router.PUT("/users/:userId/groups/:groupId/description", rt.setGroupDescription)
 	rt.router.PUT("/users/:userId/groups/:groupId/photo", rt.setGroupPhoto)
 
-	// Get Image route
+	// Image route
 	rt.router.GET("/images", rt.getPhotoHandler)
+	rt.router.POST("/images/newImage", rt.savePhoto)
 	return rt.router
 }

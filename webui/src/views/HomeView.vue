@@ -17,6 +17,7 @@ export default {
       currentUser: {},
       users: [],
       replyTo: 0,
+      newPhoto: null,
     };
   },
   methods: {
@@ -86,6 +87,36 @@ export default {
       }
     },
 
+    async addReceiver(conversationId, messageId) {
+      try {
+        const userId = localStorage.getItem("authToken");
+        const response = await this.$axios.put(
+          `/conversations/${conversationId}/messages/${messageId}/receivers/${userId}`
+        );
+      } catch (error) {
+        // console.error("Error: ", error);
+      }
+    },
+
+    async addReader(conversationId, messageId) {
+      try {
+        const userId = localStorage.getItem("authToken");
+        const response = await this.$axios.put(
+          `/conversations/${conversationId}/messages/${messageId}/readers/${userId}`
+        );
+      } catch (error) {
+        // console.error("Error: ", error);
+      }
+    },
+
+    async addReaders(conversation) {
+      if (conversation.messages) {
+        for (const m of conversation.messages) {
+          await this.addReader(conversation.resourceId, m.resourceId);
+        }
+      }
+    },
+
     // Get a specific user conversation
     async getConversation(conversationId) {
       try {
@@ -100,6 +131,11 @@ export default {
           }
         );
         response.data.resourceId = conversationId;
+        if (response.data.messages) {
+          for (const m of response.data.messages) {
+            await this.addReceiver(conversationId, m.resourceId);
+          }
+        }
         return response.data;
       } catch (error) {
         console.error("Error: ", error);
@@ -107,7 +143,11 @@ export default {
     },
 
     // Send a message
-    async sendMessage(conversation) {
+    async sendMessage(conversation, path) {
+      if (!this.newPhoto && this.newMessage === "") {
+        alert("Cannot send empty message");
+        return;
+      }
       try {
         const response = await this.$axios.post(
           `/users/${localStorage.getItem("authToken")}/conversations/${
@@ -116,8 +156,8 @@ export default {
           {
             repliedTo: this.replyTo,
             forwardedFrom: 0,
-            type: "text",
-            body: this.newMessage,
+            type: path === "" ? "text" : "image",
+            body: path === "" ? this.newMessage : path,
           },
           {
             headers: {
@@ -127,9 +167,40 @@ export default {
         );
         this.newMessage = "";
         this.replyTo = 0;
+        this.newPhoto = null;
         this.getConversations();
         const res = await this.getConversation(conversation.resourceId);
         this.selectConversation(res);
+      } catch (error) {
+        console.error("Error: ", error);
+      }
+    },
+
+    // Send photo
+    async sendPhoto(conversation) {
+      // save image
+      if (!this.newPhoto) {
+        alert("Please select a photo");
+        return;
+      }
+      const formData = new FormData();
+      const path =
+        localStorage.getItem("username") + "_" + new Date().getTime();
+      formData.append("photo", this.newPhoto);
+      try {
+        const response = await this.$axios.post(
+          `/images/newImage?path=${path}`,
+          formData,
+          {
+            headers: {
+              "Content-Type": "multipart/form-data",
+            },
+          }
+        );
+        if (response.status === 200) {
+          // send the message
+          this.sendMessage(conversation, response.data.path);
+        }
       } catch (error) {
         console.error("Error: ", error);
       }
@@ -313,6 +384,23 @@ export default {
       }
     },
 
+    // Manage send button
+    manageSend(conversation) {
+      this.newPhoto
+        ? this.sendPhoto(conversation)
+        : this.sendMessage(conversation, "");
+    },
+
+    // Handle file selection
+    handleFileUpload(event) {
+      const file = event.target.files[0];
+      if (file && file.type.startsWith("image/")) {
+        this.newPhoto = file;
+      } else {
+        alert("Please select a valid file.");
+      }
+    },
+
     // Select message to reply
     selectMessageToReply(message) {
       this.replyTo =
@@ -322,8 +410,10 @@ export default {
     // Select a conversation to view in detail
     selectConversation(conversation) {
       this.replyTo = 0;
+      this.newPhoto = null;
       this.selectedConversation = conversation;
       this.getConversation(conversation.resourceId);
+      this.addReaders(conversation);
     },
 
     // Return the message content
@@ -331,7 +421,7 @@ export default {
       const message = this.selectedConversation.messages.find(
         (m) => m.resourceId == messageId
       );
-      return message ? message.body : "Message cancelled";
+      return message;
     },
 
     // Go in the group info page
@@ -349,7 +439,7 @@ export default {
       this.getConversations();
       this.pollingInterval = setInterval(() => {
         this.getConversations();
-      }, 1000);
+      }, 2000);
     },
   },
   mounted() {
@@ -427,8 +517,26 @@ export default {
             <div :class="{ 'reply-message': message.repliedTo !== 0 }">
               <span v-if="message.repliedTo !== 0"
                 ><strong>Replied to:</strong>
-                {{ getOriginalMessage(message.repliedTo) }}</span
-              >
+                <span v-if="!getOriginalMessage(message.repliedTo)"
+                  >Message Cancelled</span
+                >
+                <span
+                  v-else-if="
+                    getOriginalMessage(message.repliedTo).type === 'text'
+                  "
+                  >{{ getOriginalMessage(message.repliedTo).body }}</span
+                >
+                <span v-else
+                  ><img
+                    :src="
+                      this.$axios['defaults']['baseURL'] +
+                      '/images?path=' +
+                      getOriginalMessage(message.repliedTo).body
+                    "
+                    alt="Profile Photo"
+                    class="message-photo"
+                /></span>
+              </span>
               <p>
                 <span v-if="message.status === 'received'"> ✔️ </span>
                 <span v-if="message.status === 'read'"> ✔️✔️ </span>
@@ -439,7 +547,21 @@ export default {
                       : usernames[message.sender]
                   }}:</strong
                 >
-                {{ message.body }}
+                <span class="message-body" v-if="message.type === 'text'">
+                  {{ message.body }}
+                </span>
+                <span class="message-body" v-else>
+                  <img
+                    :src="
+                      this.$axios['defaults']['baseURL'] +
+                      '/images?path=' +
+                      message.body
+                    "
+                    alt="Profile Photo"
+                    class="message-photo"
+                  />
+                </span>
+
                 <!-- if is user's message the user can delete the message -->
                 <span
                   v-if="usernames[message.sender] === currentUser['username']"
@@ -473,6 +595,7 @@ export default {
           <p>No messages yet</p>
         </div>
       </div>
+      <!-- Text Area -->
       <div class="message-input">
         <textarea
           v-model="newMessage"
@@ -481,7 +604,16 @@ export default {
           cols="40"
         ></textarea>
       </div>
-      <button class="send-message" @click="sendMessage(selectedConversation)">
+      <!-- Image Area -->
+      <div class="change-photo">
+        <input
+          type="file"
+          accept="image/png, image/jpeg"
+          @change="handleFileUpload"
+          class="photo-upload-input"
+        />
+      </div>
+      <button class="send-message" @click="manageSend(selectedConversation)">
         Send
       </button>
     </div>
@@ -517,13 +649,13 @@ export default {
 }
 
 .conversation-detail {
-  width: 65%;
+  width: 80%;
   padding-left: 10px;
 }
 
 .messages-container {
-  max-height: 200px;
   overflow-y: auto;
+  max-height: 800px;
   border: 1px solid #ddd;
 }
 
@@ -607,5 +739,17 @@ export default {
   margin-left: 5px;
   font-size: 10px;
   display: block;
+}
+
+.message-photo {
+  width: 120px;
+  height: 120px;
+  object-fit: cover;
+  border: 3px solid #4e73df;
+  margin: 5px;
+}
+
+.message-body {
+  margin-left: 10px;
 }
 </style>

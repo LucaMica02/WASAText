@@ -2,6 +2,7 @@ package api
 
 import (
 	"encoding/json"
+	"io"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -66,4 +67,67 @@ func (rt *_router) getPhotoHandler(w http.ResponseWriter, r *http.Request, ps ht
 		w.Header().Set("content-type", "image/png")
 	}
 	http.ServeFile(w, r, path)
+}
+
+/* SAVE PHOTO */
+func (rt *_router) savePhoto(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	// valid the path
+	path := r.URL.Query().Get("path")
+	if path == "" {
+		http.Error(w, "No path provided", http.StatusBadRequest)
+		return
+	}
+
+	// parse the file
+	err := r.ParseMultipartForm(10 << 25) // max 25 MB
+	if err != nil {
+		http.Error(w, "Error parsing form-data", http.StatusBadRequest)
+		return
+	}
+	file, header, err := r.FormFile("photo")
+	if err != nil {
+		http.Error(w, "Error loading file", http.StatusBadRequest)
+		return
+	}
+	defer file.Close()
+
+	// create directory if not exists
+	imagesDir := "images"
+	if _, err := os.Stat(imagesDir); os.IsNotExist(err) {
+		err = os.Mkdir(imagesDir, os.ModePerm)
+		if err != nil {
+			http.Error(w, "Error creating images directory", http.StatusInternalServerError)
+			return
+		}
+	}
+
+	// create the path
+	ext := filepath.Ext(header.Filename)
+	if ext != ".jpeg" && ext != ".png" {
+		http.Error(w, "Only .jpeg and .png image allowed", http.StatusBadRequest)
+		return
+	}
+	filePath := filepath.Join(imagesDir, path+ext)
+
+	// write the file
+	out, err := os.Create(filePath)
+	if err != nil {
+		http.Error(w, "Error saving the file", http.StatusInternalServerError)
+	}
+	defer out.Close()
+
+	// copy the content into the destination file
+	_, err = io.Copy(out, file)
+	if err != nil {
+		http.Error(w, "Error writing the file", http.StatusInternalServerError)
+	}
+
+	// return the User
+	w.Header().Set("content-type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	response := map[string]string{"path": filePath}
+	err = json.NewEncoder(w).Encode(response)
+	if err != nil {
+		http.Error(w, "Error encoding the response", http.StatusInternalServerError)
+	}
 }

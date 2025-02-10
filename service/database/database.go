@@ -36,6 +36,8 @@ type AppDatabase interface {
 	UpdateMessageStatus(messageId int, status string) error
 	AddReceiver(userId int, messageId int) error
 	AddReader(userId int, messageId int) error
+	GetReceivers(messageId int) (int, error)
+	GetReaders(messageId int) (int, error)
 
 	// Comment Operations
 	CheckIfCommentExists(senderId int, messageId int) (bool, error)
@@ -52,6 +54,7 @@ type AppDatabase interface {
 	UpdateGroupName(groupId int, name string) error
 	UpdateGroupDescription(groupId int, description string) error
 	UpdateGroupPhotoUrl(url string, groupId int) error
+	GetMembersCount(groupId int) (int, error)
 
 	Ping() error
 }
@@ -190,13 +193,13 @@ func New(db *sql.DB) (AppDatabase, error) {
 		if err != nil {
 			return nil, fmt.Errorf("error creating the MessageReaders table: %w", err)
 		}
-	}
 
-	// Active the foreign keys
-	sqlStmt := `PRAGMA foreign_keys = ON;`
-	_, err = db.Exec(sqlStmt)
-	if err != nil {
-		return nil, fmt.Errorf("error activing the foreign keys: %w", err)
+		// Active the foreign keys
+		sqlStmt = `PRAGMA foreign_keys = ON;`
+		_, err = db.Exec(sqlStmt)
+		if err != nil {
+			return nil, fmt.Errorf("error activing the foreign keys: %w", err)
+		}
 	}
 
 	return &appdbimpl{

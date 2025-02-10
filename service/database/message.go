@@ -32,7 +32,7 @@ func (db *appdbimpl) ForwardMessage(messageId int, senderId int, conversationId 
 	message.Sender = senderId
 	message.Conversation = conversationId
 	message.ForwardedFrom = messageId
-	_, err = db.c.Exec("INSERT INTO Message (timestamp, senderId, conversationId, status, type, content, repliedTo, forwardedFrom) VALUES (?, ?, ?, ?, ?, ?, 0, ?)", message.Timestamp, message.Sender, message.Conversation, message.Status, message.Type, message.Body, messageId)
+	_, err = db.c.Exec("INSERT INTO Message (timestamp, senderId, conversationId, status, type, content, repliedTo, forwardedFrom) VALUES (?, ?, ?, ?, ?, ?, 0, ?)", message.Timestamp, message.Sender, message.Conversation, "delivered", message.Type, message.Body, messageId)
 	return message, err
 }
 
@@ -46,7 +46,19 @@ func (db *appdbimpl) AddReceiver(userId int, messageId int) error {
 	return err
 }
 
+func (db *appdbimpl) GetReceivers(messageId int) (int, error) {
+	var count int
+	err := db.c.QueryRow("SELECT COUNT(userId) FROM MessageReceivers GROUP BY messageId HAVING messageId = ?", messageId).Scan(&count)
+	return count, err
+}
+
 func (db *appdbimpl) AddReader(userId int, messageId int) error {
 	_, err := db.c.Exec("INSERT INTO MessageReaders(userId, messageId) VALUES (?, ?)", userId, messageId)
 	return err
+}
+
+func (db *appdbimpl) GetReaders(messageId int) (int, error) {
+	var count int
+	err := db.c.QueryRow("SELECT COUNT(userId) FROM MessageReaders GROUP BY messageId HAVING messageId = ?", messageId).Scan(&count)
+	return count, err
 }
