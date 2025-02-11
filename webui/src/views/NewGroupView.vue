@@ -108,7 +108,6 @@ export default {
   <div class="profile-container">
     <div class="group-info">
       <!-- Textarea for set the group name -->
-      <h3>Group Name:</h3>
       <div class="change-group-name">
         <textarea
           v-model="groupName"
@@ -119,7 +118,6 @@ export default {
       </div>
 
       <!-- Textarea for set the group description -->
-      <h3>Group Description:</h3>
       <div class="change-group-name">
         <textarea
           v-model="groupDescription"
@@ -232,34 +230,5 @@ export default {
 
 .btn:hover {
   background-color: #2e59a6;
-}
-
-.user-item span {
-  border: 2px solid #000;
-  padding: 2px 5px;
-  border-radius: 2px;
-  cursor: pointer;
-}
-
-.user-item span:hover {
-  border-color: #007bff;
-  color: #007bff;
-}
-
-.header-button {
-  background-color: #28a745;
-  color: white;
-  border: 5px;
-  padding: 10px 20px;
-  font-size: 16px;
-  border-radius: 15px;
-  cursor: pointer;
-}
-
-.header-button:hover {
-  background-color: #218838;
-  color: #fff;
-  transform: scale(1.05);
-  box-shadow: 0 4px 8px rgba(0, 123, 255, 0.3);
 }
 </style>
