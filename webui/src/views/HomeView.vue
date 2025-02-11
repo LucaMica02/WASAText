@@ -436,9 +436,7 @@ export default {
     },
 
     startPolling() {
-      this.getConversations(); // Ottieni subito le conversazioni iniziali
-
-      // Imposta il polling ogni 5000ms (5 secondi)
+      this.getConversations();
       this.pollingInterval = setInterval(() => {
         this.getConversations();
       }, 2000);

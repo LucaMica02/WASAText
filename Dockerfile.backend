@@ -1,0 +1,25 @@
+FROM golang:1.19.8 AS builder
+
+### Copy Go code
+WORKDIR /src/
+COPY . .
+
+### Build executables
+RUN go build -o /app/webapi ./cmd/webapi
+
+
+### Create final container
+FROM debian:stable
+
+### Inform Docker about which port is used
+EXPOSE 3000
+
+### Copy the build executable from the builder image
+WORKDIR /app/
+COPY --from=builder /app/webapi ./
+
+### Executable command
+CMD ["/app/webapi"]
+
+# BUILD: docker build -t backend:latest -f Dockerfile.backend .
+# RUN: docker run -it --rm -p 3000:3000 backend:latest

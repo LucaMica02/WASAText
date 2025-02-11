@@ -94,14 +94,15 @@ func New(db *sql.DB) (AppDatabase, error) {
 
 		// Create PrivateConversation Table
 		sqlStmt = `CREATE TABLE PrivateConversation (
-			conversationId INTEGER PRIMARY KEY,
-			userId_1 INTEGER NOT NULL,
-			userId_2 INTEGER NOT NULL,
-			CHECK (userId_1 < userId_2),
-			UNIQUE (userId_1, userId_2),
-			FOREIGN KEY (conversationId) REFERENCES Conversation(conversationId),
-			FOREIGN KEY (userId_1) REFERENCES User(userId),
-			FOREIGN KEY (userId_2) REFERENCES User(userId));`
+    conversationId INTEGER PRIMARY KEY,
+    userId_1 INTEGER NOT NULL,
+    userId_2 INTEGER NOT NULL,
+    CHECK (userId_1 < userId_2),
+    UNIQUE (userId_1, userId_2),
+    FOREIGN KEY (conversationId) REFERENCES Conversation(conversationId),
+    FOREIGN KEY (userId_1) REFERENCES User(userId),
+    FOREIGN KEY (userId_2) REFERENCES User(userId)
+);`
 		_, err = db.Exec(sqlStmt)
 		if err != nil {
 			return nil, fmt.Errorf("error creating the private conversation table: %w", err)
@@ -109,12 +110,12 @@ func New(db *sql.DB) (AppDatabase, error) {
 
 		// Create GroupConversation Table
 		sqlStmt = `CREATE TABLE GroupConversation (
-			groupId INTEGER PRIMARY KEY AUTOINCREMENT,
-			name TEXT NOT NULL,
-			description TEXT NOT NULL,
-			photoUrl TEXT NOT NULL,
-			conversationId INTEGER NOT NULL,
-			FOREIGN KEY (conversationId) REFERENCES Conversation(conversationId));`
+    groupId INTEGER PRIMARY KEY,
+    name TEXT NOT NULL,
+    description TEXT NOT NULL,
+    photoUrl TEXT NOT NULL,
+    FOREIGN KEY (groupId) REFERENCES Conversation(conversationId)
+);`
 		_, err = db.Exec(sqlStmt)
 		if err != nil {
 			return nil, fmt.Errorf("error creating the group conversation table: %w", err)
@@ -122,17 +123,18 @@ func New(db *sql.DB) (AppDatabase, error) {
 
 		// Create Message Table
 		sqlStmt = `CREATE TABLE Message (
-			messageId INTEGER PRIMARY KEY AUTOINCREMENT,
-			timestamp TEXT NOT NULL,
-			senderId INTEGER NOT NULL, 
-			conversationId INTEGER NOT NULL,
-			status TEXT CHECK (status IN ('delivered', 'received', 'read')) NOT NULL,
-			type TEXT CHECK (type IN ('text', 'image')) NOT NULL,
-			content TEXT NOT NULL,
-			repliedTo INTEGER NOT NULL,
-			forwardedFrom INTEGER NOT NULL,
-			FOREIGN KEY (senderId) REFERENCES User(userId),
-			FOREIGN KEY (conversationId) REFERENCES Conversation(conversationId));`
+    messageId INTEGER PRIMARY KEY AUTOINCREMENT,
+    timestamp TEXT NOT NULL,
+    senderId INTEGER NOT NULL, 
+    conversationId INTEGER NOT NULL,
+    status TEXT CHECK (status IN ('delivered', 'received', 'read')) NOT NULL,
+    type TEXT CHECK (type IN ('text', 'image')) NOT NULL,
+    content TEXT NOT NULL,
+    repliedTo INTEGER,
+    forwardedFrom INTEGER,
+    FOREIGN KEY (senderId) REFERENCES User(userId),
+    FOREIGN KEY (conversationId) REFERENCES Conversation(conversationId)
+);`
 		_, err = db.Exec(sqlStmt)
 		if err != nil {
 			return nil, fmt.Errorf("error creating the message table: %w", err)
@@ -140,13 +142,14 @@ func New(db *sql.DB) (AppDatabase, error) {
 
 		// Create Comment Table
 		sqlStmt = `CREATE TABLE Comment (
-			commentId INTEGER PRIMARY KEY AUTOINCREMENT,
-			timestamp TEXT NOT NULL,
-			senderId INTEGER NOT NULL, 
-			messageId INTEGER NOT NULL,
-			reaction TEXT NOT NULL,
-			FOREIGN KEY (senderId) REFERENCES User(userId),
-			FOREIGN KEY (messageId) REFERENCES Message(messageId));`
+    commentId INTEGER PRIMARY KEY AUTOINCREMENT,
+    timestamp TEXT NOT NULL,
+    senderId INTEGER NOT NULL, 
+    messageId INTEGER NOT NULL,
+    reaction TEXT NOT NULL,
+    UNIQUE(senderId, messageId),
+    FOREIGN KEY (senderId) REFERENCES User(userId)
+);`
 		_, err = db.Exec(sqlStmt)
 		if err != nil {
 			return nil, fmt.Errorf("error creating the comment table: %w", err)
@@ -154,11 +157,12 @@ func New(db *sql.DB) (AppDatabase, error) {
 
 		// Create UserGroup Table
 		sqlStmt = `CREATE TABLE UserGroup (
-			id INTEGER PRIMARY KEY AUTOINCREMENT,
-			userId INTEGER NOT NULL, 
-			groupId INTEGER NOT NULL,
-			FOREIGN KEY (userId) REFERENCES User(userId),
-			FOREIGN KEY (groupId) REFERENCES GroupConversation(groupId));`
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    userId INTEGER NOT NULL, 
+    groupId INTEGER NOT NULL,
+    FOREIGN KEY (userId) REFERENCES User(userId),
+    FOREIGN KEY (groupId) REFERENCES GroupConversation(groupId)
+);`
 		_, err = db.Exec(sqlStmt)
 		if err != nil {
 			return nil, fmt.Errorf("error creating the UserGroup table: %w", err)
@@ -166,11 +170,12 @@ func New(db *sql.DB) (AppDatabase, error) {
 
 		// Create MessageReceivers Table
 		sqlStmt = `CREATE TABLE MessageReceivers (
-			id INTEGER PRIMARY KEY AUTOINCREMENT,
-			userId INTEGER NOT NULL, 
-			messageId INTEGER NOT NULL,
-			FOREIGN KEY (userId) REFERENCES User(userId),
-			FOREIGN KEY (messageId) REFERENCES Message(messageId));`
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    userId INTEGER NOT NULL, 
+    messageId INTEGER NOT NULL,
+    UNIQUE (userId, messageId),
+    FOREIGN KEY (userId) REFERENCES User(userId)
+);`
 		_, err = db.Exec(sqlStmt)
 		if err != nil {
 			return nil, fmt.Errorf("error creating the MessageReceivers table: %w", err)
@@ -178,11 +183,12 @@ func New(db *sql.DB) (AppDatabase, error) {
 
 		// Create MessageReaders Table
 		sqlStmt = `CREATE TABLE MessageReaders (
-			id INTEGER PRIMARY KEY AUTOINCREMENT,
-			userId INTEGER NOT NULL, 
-			messageId INTEGER NOT NULL,
-			FOREIGN KEY (userId) REFERENCES User(userId),
-			FOREIGN KEY (messageId) REFERENCES Message(messageId));`
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    userId INTEGER NOT NULL, 
+    messageId INTEGER NOT NULL,
+    UNIQUE (userId, messageId),
+    FOREIGN KEY (userId) REFERENCES User(userId)
+);`
 		_, err = db.Exec(sqlStmt)
 		if err != nil {
 			return nil, fmt.Errorf("error creating the MessageReaders table: %w", err)
