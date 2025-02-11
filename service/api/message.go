@@ -263,6 +263,61 @@ func (rt *_router) forwardMessage(w http.ResponseWriter, r *http.Request, ps htt
 	}
 }
 
+func (rt *_router) updateMessageStatus(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	// valid conversationId
+	conversationIdString := strings.Split(r.URL.Path, "/")[2]
+	conversationId, err := strconv.Atoi(conversationIdString)
+	if err != nil {
+		http.Error(w, "conversationId not valid", http.StatusBadRequest)
+		return
+	}
+	exists, _ := rt.db.CheckIfConversationExistsByConversationId(conversationId)
+	if !exists {
+		http.Error(w, "conversationId not found", http.StatusNotFound)
+		return
+	}
+
+	// valid messageId
+	messageIdString := strings.Split(r.URL.Path, "/")[4]
+	messageId, err := strconv.Atoi(messageIdString)
+	if err != nil {
+		http.Error(w, "messageId not valid", http.StatusBadRequest)
+		return
+	}
+	exists, _ = rt.db.CheckIfMessageExistsByMessageId(messageId)
+	if !exists {
+		http.Error(w, "messageId not found", http.StatusNotFound)
+		return
+	}
+
+	// valid request
+	var status MessageStatus
+	err = json.NewDecoder(r.Body).Decode(&status)
+	if err != nil {
+		http.Error(w, "Invalid Request", http.StatusBadRequest)
+		return
+	}
+	if status.MessageStatus != "delivered" && status.MessageStatus != "received" && status.MessageStatus != "read" {
+		http.Error(w, "Invalid Request", http.StatusBadRequest)
+		return
+	}
+
+	// update the status
+	err = rt.db.UpdateMessageStatus(messageId, status.MessageStatus)
+	if err != nil {
+		http.Error(w, "Error updating the status", http.StatusInternalServerError)
+		return
+	}
+
+	// return the message status
+	w.Header().Set("content-type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	err = json.NewEncoder(w).Encode(status)
+	if err != nil {
+		http.Error(w, "Error encoding the response", http.StatusInternalServerError)
+	}
+}
+
 func (rt *_router) addReceiver(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	// valid conversationId
 	conversationIdString := strings.Split(r.URL.Path, "/")[2]
@@ -314,33 +369,6 @@ func (rt *_router) addReceiver(w http.ResponseWriter, r *http.Request, ps httpro
 	err = rt.db.AddReceiver(userId, messageId)
 	if err != nil {
 		http.Error(w, "Error adding the receiver", http.StatusInternalServerError)
-		return
-	}
-
-	// check conversation is private
-	conversation, _ := rt.db.GetConversationByConversationId(conversationId, userId)
-
-	// count ricevitori
-	receivers, _ := rt.db.GetReceivers(messageId)
-
-	// count utenti gruppo
-	if conversation.IsPrivate {
-		if receivers == 2 {
-			err = rt.db.UpdateMessageStatus(messageId, "received")
-			if err != nil {
-				http.Error(w, "Error updating the status", http.StatusInternalServerError)
-				return
-			}
-		}
-	} else {
-		usersCount, _ := rt.db.GetMembersCount(conversationId)
-		if receivers == usersCount {
-			err = rt.db.UpdateMessageStatus(messageId, "received")
-			if err != nil {
-				http.Error(w, "Error updating the status", http.StatusInternalServerError)
-				return
-			}
-		}
 	}
 
 	// return the userId
@@ -406,32 +434,6 @@ func (rt *_router) addReader(w http.ResponseWriter, r *http.Request, ps httprout
 	if err != nil {
 		http.Error(w, "Error adding the receiver", http.StatusInternalServerError)
 		return
-	}
-
-	// check conversation is private
-	conversation, _ := rt.db.GetConversationByConversationId(conversationId, userId)
-
-	// count ricevitori
-	readers, _ := rt.db.GetReaders(messageId)
-
-	// count utenti gruppo
-	if conversation.IsPrivate {
-		if readers == 2 {
-			err = rt.db.UpdateMessageStatus(messageId, "read")
-			if err != nil {
-				http.Error(w, "Error updating the status", http.StatusInternalServerError)
-				return
-			}
-		}
-	} else {
-		usersCount, _ := rt.db.GetMembersCount(conversationId)
-		if readers == usersCount {
-			err = rt.db.UpdateMessageStatus(messageId, "read")
-			if err != nil {
-				http.Error(w, "Error updating the status", http.StatusInternalServerError)
-				return
-			}
-		}
 	}
 
 	// return the userId

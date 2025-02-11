@@ -20,25 +20,7 @@ export default {
     <div class="conversation-info">
       <span v-if="conversation.messages && conversation.messages.length > 0">
         Last message:
-        <span
-          v-if="
-            conversation.messages[conversation.messages.length - 1].type ===
-            'text'
-          "
-          >{{
-            conversation.messages[conversation.messages.length - 1].body
-          }}</span
-        >
-        <span v-else
-          ><img
-            :src="
-              this.$axios['defaults']['baseURL'] +
-              '/images?path=' +
-              conversation.messages[conversation.messages.length - 1].body
-            "
-            alt="Profile Photo"
-            class="message-photo"
-        /></span>
+        {{ conversation.messages[conversation.messages.length - 1].body }}
         <div class="timestamp-prop">
           {{
             conversation.messages[conversation.messages.length - 1].timestamp
@@ -85,14 +67,5 @@ export default {
 .timestamp-prop {
   margin-left: 5px;
   font-size: 10px;
-}
-
-.message-photo {
-  width: 20px;
-  height: 20px;
-  object-fit: cover;
-  border-radius: 10%;
-  border: 1px solid #4e73df;
-  margin: 5px;
 }
 </style>
