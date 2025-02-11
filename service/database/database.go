@@ -190,13 +190,13 @@ func New(db *sql.DB) (AppDatabase, error) {
 		if err != nil {
 			return nil, fmt.Errorf("error creating the MessageReaders table: %w", err)
 		}
-	}
 
-	// Active the foreign keys
-	sqlStmt := `PRAGMA foreign_keys = ON;`
-	_, err = db.Exec(sqlStmt)
-	if err != nil {
-		return nil, fmt.Errorf("error activing the foreign keys: %w", err)
+		// Active the foreign keys
+		sqlStmt = `PRAGMA foreign_keys = ON;`
+		_, err = db.Exec(sqlStmt)
+		if err != nil {
+			return nil, fmt.Errorf("error activing the foreign keys: %w", err)
+		}
 	}
 
 	return &appdbimpl{
