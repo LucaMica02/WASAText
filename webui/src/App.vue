@@ -4,11 +4,6 @@ import { EventBus } from "./EventBus";
 </script>
 <script>
 export default {
-  data() {
-    return {
-      isLoggedIn: localStorage.getItem("isLoggedIn") === "true",
-    };
-  },
   methods: {
     logout() {
       localStorage.setItem("username", "");

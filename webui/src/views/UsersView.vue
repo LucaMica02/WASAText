@@ -1,8 +1,3 @@
-<script setup>
-import { RouterView } from "vue-router";
-import User from "../components/User.vue";
-</script>
-
 <script>
 export default {
   data() {
@@ -18,13 +13,7 @@ export default {
         const response = await this.$axios.get(`/users`, {
           headers: { Authorization: localStorage.getItem("authToken") },
         });
-        if (response.status === 400) {
-          alert("Bad Request");
-        } else if (response.status === 404) {
-          alert("User not found");
-        } else if (response.status === 500) {
-          alert("Server Error");
-        } else if (response.status === 200) {
+        if (response.status === 200) {
           response.data.forEach((user) => {
             user.PhotoUrl = this.getImagePath(user.PhotoUrl);
           });
@@ -42,7 +31,7 @@ export default {
     // filter user based on searchQuery
     filteredUsers() {
       return this.users.filter((user) =>
-        user.username.toLowerCase().includes(this.searchQuery.toLowerCase())
+        user.username.startsWith(this.searchQuery)
       );
     },
   },
@@ -65,15 +54,13 @@ export default {
     <User v-for="user in filteredUsers" :key="user.id" :user="user" />
   </div>
   <div v-else>
-    <p>Loading users...</p>
+    <p><b>No User Found</b></p>
   </div>
-  <main><RouterView /></main>
 </template>
 
 <style scoped>
 .user-container {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
   gap: 15px;
   margin-top: 20px;
 }

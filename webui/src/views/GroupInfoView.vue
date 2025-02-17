@@ -1,7 +1,3 @@
-<script setup>
-import { RouterView } from "vue-router";
-</script>
-
 <script>
 export default {
   data() {
@@ -15,11 +11,9 @@ export default {
     };
   },
   methods: {
-    // Get the user information
+    // Get the group information
     fetchGroup() {
       this.groupConversation = JSON.parse(localStorage.getItem("group"));
-      this.groupConversation.photoUrl = this.getImagePath();
-      console.log(this.groupConversation);
     },
 
     // Show the user to add options
@@ -33,13 +27,7 @@ export default {
         const response = await this.$axios.get(`/users`, {
           headers: { Authorization: localStorage.getItem("authToken") },
         });
-        if (response.status === 400) {
-          alert("Bad Request");
-        } else if (response.status === 404) {
-          alert("User not found");
-        } else if (response.status === 500) {
-          alert("Server Error");
-        } else if (response.status === 200) {
+        if (response.status === 200) {
           this.users = response.data;
         }
       } catch (error) {
@@ -58,17 +46,7 @@ export default {
             headers: { Authorization: authToken },
           }
         );
-        if (response.status === 400) {
-          alert("Bad Request");
-        } else if (response.status === 401) {
-          alert("Invalid auth");
-        } else if (response.status === 403) {
-          alert("Not authorized");
-        } else if (response.status === 404) {
-          alert("Group not found");
-        } else if (response.status === 500) {
-          alert("Server Error");
-        } else if (response.status === 200) {
+        if (response.status === 200) {
           this.newGroupName = "";
           response.data.resourceId = this.groupConversation.resourceId;
           localStorage.setItem("group", JSON.stringify(response.data));
@@ -91,17 +69,7 @@ export default {
             headers: { Authorization: localStorage.getItem("authToken") },
           }
         );
-        if (response.status === 400) {
-          alert("Bad Request");
-        } else if (response.status === 401) {
-          alert("Invalid auth");
-        } else if (response.status === 403) {
-          alert("Not authorized");
-        } else if (response.status === 404) {
-          alert("Group not found");
-        } else if (response.status === 500) {
-          alert("Server Error");
-        } else if (response.status === 200) {
+        if (response.status === 200) {
           this.newGroupDescription = "";
           response.data.resourceId = this.groupConversation.resourceId;
           localStorage.setItem("group", JSON.stringify(response.data));
@@ -133,19 +101,10 @@ export default {
             },
           }
         );
-        if (response.status === 400) {
-          alert("Bad Request");
-        } else if (response.status === 401) {
-          alert("Invalid auth");
-        } else if (response.status === 403) {
-          alert("Not authorized");
-        } else if (response.status === 404) {
-          alert("Group not found");
-        } else if (response.status === 500) {
-          alert("Server Error");
-        } else if (response.status === 200) {
+        if (response.status === 200) {
           this.newPhoto = null;
           response.data.resourceId = this.groupConversation.resourceId;
+          response.data.photoUrl = this.getImagePath(response.data.photoUrl);
           localStorage.setItem("group", JSON.stringify(response.data));
           this.fetchGroup();
         }
@@ -165,17 +124,7 @@ export default {
             headers: { Authorization: localStorage.getItem("authToken") },
           }
         );
-        if (response.status === 400) {
-          alert("Bad Request");
-        } else if (response.status === 401) {
-          alert("Invalid auth");
-        } else if (response.status === 403) {
-          alert("Not authorized");
-        } else if (response.status === 404) {
-          alert("Group not found");
-        } else if (response.status === 500) {
-          alert("Server Error");
-        } else if (response.status === 204) {
+        if (response.status === 204) {
           alert("You have left the group");
           this.$router.replace("/");
         }
@@ -188,25 +137,14 @@ export default {
     async addMember(user) {
       try {
         const authToken = localStorage.getItem("authToken");
-        console.log(authToken);
         const response = await this.$axios.put(
           `/users/${authToken}/groups/${this.groupConversation.resourceId}/members?userId=${user.resourceId}`,
-          { body: "SenzaQuestoNonFunzionaNonSoPerchè" },
+          { body: "" }, // Without body not work
           {
             headers: { Authorization: authToken },
           }
         );
-        if (response.status === 400) {
-          alert("Bad Request");
-        } else if (response.status === 401) {
-          alert("Invalid auth");
-        } else if (response.status === 403) {
-          alert("Not authorized");
-        } else if (response.status === 404) {
-          alert("Group not found");
-        } else if (response.status === 500) {
-          alert("Server Error");
-        } else if (response.status === 200) {
+        if (response.status === 200) {
           alert("User already in the group");
         } else if (response.status === 201) {
           alert("Member Added Successfully");
@@ -220,7 +158,6 @@ export default {
     // Handle file selection
     handleFileUpload(event) {
       const file = event.target.files[0];
-      console.log(file.type);
       if (file && file.type.startsWith("image/")) {
         this.newPhoto = file;
       } else {
@@ -229,11 +166,11 @@ export default {
     },
 
     // return the full image path
-    getImagePath() {
+    getImagePath(photoUrl) {
       return (
         this.$axios["defaults"]["baseURL"] +
         "/images?path=" +
-        this.groupConversation.photoUrl +
+        photoUrl +
         "&t=" +
         new Date().getTime()
       );
@@ -311,7 +248,6 @@ export default {
       </div>
     </div>
   </div>
-  <main><RouterView /></main>
 </template>
 
 <style scoped>
@@ -341,21 +277,6 @@ export default {
   border-radius: 50%;
   object-fit: cover;
   border: 3px solid #4e73df;
-}
-
-.delete-photo-btn {
-  background-color: #f04e4e;
-  color: white;
-  border: none;
-  padding: 8px 20px;
-  margin-top: 10px;
-  cursor: pointer;
-  border-radius: 5px;
-  transition: background-color 0.3s;
-}
-
-.delete-photo-btn:hover {
-  background-color: #d03d3d;
 }
 
 .group-info {

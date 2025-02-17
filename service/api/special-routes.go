@@ -15,12 +15,14 @@ func (rt *_router) doLogin(w http.ResponseWriter, r *http.Request, ps httprouter
 	err := json.NewDecoder(r.Body).Decode(&loginRequest)
 	if err != nil {
 		http.Error(w, "Invalid Request", http.StatusBadRequest)
+		return 
 	}
 
 	w.Header().Set("content-type", "application/json")
 	exists, err := rt.db.CheckIfUserExistsByUsername(loginRequest.Username)
 	if err != nil {
 		http.Error(w, "Error checking if the user exists", http.StatusInternalServerError)
+		return 
 	}
 	if exists {
 		// return userId
@@ -30,6 +32,7 @@ func (rt *_router) doLogin(w http.ResponseWriter, r *http.Request, ps httprouter
 		err = json.NewEncoder(w).Encode(response)
 		if err != nil {
 			http.Error(w, "Error encoding the response", http.StatusInternalServerError)
+			return 
 		}
 	} else {
 		// create new user and return userId
@@ -40,6 +43,7 @@ func (rt *_router) doLogin(w http.ResponseWriter, r *http.Request, ps httprouter
 		err = json.NewEncoder(w).Encode(response)
 		if err != nil {
 			http.Error(w, "Error encoding the response", http.StatusInternalServerError)
+			return 
 		}
 	}
 }

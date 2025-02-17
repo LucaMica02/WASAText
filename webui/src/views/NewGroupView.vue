@@ -1,7 +1,3 @@
-<script setup>
-import { RouterView } from "vue-router";
-</script>
-
 <script>
 export default {
   data() {
@@ -38,13 +34,7 @@ export default {
         const response = await this.$axios.get(`/users`, {
           headers: { Authorization: localStorage.getItem("authToken") },
         });
-        if (response.status === 400) {
-          alert("Bad Request");
-        } else if (response.status === 404) {
-          alert("User not found");
-        } else if (response.status === 500) {
-          alert("Server Error");
-        } else if (response.status === 200) {
+        if (response.status === 200) {
           this.usersToAdd = response.data;
           this.loggedUserId = localStorage.getItem("authToken");
           this.usersToAdd.forEach((user) => {
@@ -81,15 +71,7 @@ export default {
             headers: { Authorization: this.loggedUserId },
           }
         );
-        if (response.status === 400) {
-          alert("Bad Request");
-        } else if (response.status === 401) {
-          alert("Auth token missing");
-        } else if (response.status === 403) {
-          alert("Not authorized");
-        } else if (response.status === 500) {
-          alert("Server Error");
-        } else if (response.status === 201) {
+        if (response.status === 201) {
           alert("Group created");
           this.$router.replace("/");
         }
@@ -151,7 +133,6 @@ export default {
     </div>
     <button class="header-button" @click="createGroup()">Create Group</button>
   </div>
-  <main><RouterView /></main>
 </template>
 
 <style scoped>
@@ -163,39 +144,6 @@ export default {
   background-color: #f9f9f9;
   border-radius: 10px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-}
-
-.photo-section {
-  position: relative;
-}
-
-.photo-container {
-  margin-bottom: 10px;
-  display: flex;
-  justify-content: center;
-}
-
-.profile-photo {
-  width: 120px;
-  height: 120px;
-  border-radius: 50%;
-  object-fit: cover;
-  border: 3px solid #4e73df;
-}
-
-.delete-photo-btn {
-  background-color: #f04e4e;
-  color: white;
-  border: none;
-  padding: 8px 20px;
-  margin-top: 10px;
-  cursor: pointer;
-  border-radius: 5px;
-  transition: background-color 0.3s;
-}
-
-.delete-photo-btn:hover {
-  background-color: #d03d3d;
 }
 
 .group-info {
@@ -211,27 +159,6 @@ export default {
 .change-group-name,
 .change-photo {
   margin-bottom: 10px;
-}
-
-.photo-upload-input {
-  padding: 5px;
-  border-radius: 5px;
-  border: 1px solid #ddd;
-  margin-bottom: 10px;
-}
-
-.btn {
-  padding: 10px 20px;
-  background-color: #4e73df;
-  color: white;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-  transition: background-color 0.3s;
-}
-
-.btn:hover {
-  background-color: #2e59a6;
 }
 
 .user-item span {

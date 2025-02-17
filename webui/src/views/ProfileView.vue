@@ -1,7 +1,3 @@
-<script setup>
-import { RouterView } from "vue-router";
-</script>
-
 <script>
 export default {
   data() {
@@ -21,16 +17,11 @@ export default {
             headers: { Authorization: localStorage.getItem("authToken") },
           }
         );
-        if (response.status === 400) {
-          alert("Bad Request");
-        } else if (response.status === 404) {
-          alert("User not found");
-        } else if (response.status === 500) {
-          alert("Server Error");
-        } else if (response.status === 200) {
+        if (response.status === 200) {
           this.currentUser = response.data;
-          this.currentUser["fullPhotoUrl"] = this.getImagePath();
-          console.log(this.currentUser["fullPhotoUrl"]);
+          this.currentUser["PhotoUrl"] = this.getImagePath(
+            this.currentUser["PhotoUrl"]
+          );
         }
       } catch (error) {
         console.error("Error: ", error);
@@ -47,19 +38,7 @@ export default {
             headers: { Authorization: localStorage.getItem("authToken") },
           }
         );
-        if (response.status === 400) {
-          alert("Bad Request");
-        } else if (response.status === 401) {
-          alert("Invalid auth");
-        } else if (response.status === 403) {
-          alert("Not authorized");
-        } else if (response.status === 404) {
-          alert("User not found");
-        } else if (response.status === 409) {
-          alert("Username already taken");
-        } else if (response.status === 500) {
-          alert("Server Error");
-        } else if (response.status === 200) {
+        if (response.status === 200) {
           localStorage.setItem("username", this.newUsername);
           this.newUsername = "";
           this.fetchUser();
@@ -71,6 +50,8 @@ export default {
         }
       }
     },
+
+    // Update the profile photo
     async updatePhoto() {
       if (!this.newPhoto) {
         alert("Please select a photo");
@@ -89,21 +70,8 @@ export default {
             },
           }
         );
-        if (response.status === 400) {
-          alert("Bad Request");
-        } else if (response.status === 401) {
-          alert("Invalid auth");
-        } else if (response.status === 403) {
-          alert("Not authorized");
-        } else if (response.status === 404) {
-          alert("User not found");
-        } else if (response.status === 500) {
-          alert("Server Error");
-        } else if (response.status === 200) {
+        if (response.status === 200) {
           this.newPhoto = null;
-          this.currentUser["PhotoUrl"] = response.data["PhotoUrl"];
-          this.currentUser["fullPhotoUrl"] = "";
-          this.currentUser["fullPhotoUrl"] = this.getImagePath();
           this.fetchUser();
         }
       } catch (error) {
@@ -113,7 +81,6 @@ export default {
     // Handle file selection
     handleFileUpload(event) {
       const file = event.target.files[0];
-      console.log(file.type);
       if (file && file.type.startsWith("image/")) {
         this.newPhoto = file;
       } else {
@@ -121,11 +88,11 @@ export default {
       }
     },
     // return the full image path
-    getImagePath() {
+    getImagePath(photoUrl) {
       return (
         this.$axios["defaults"]["baseURL"] +
         "/images?path=" +
-        this.currentUser.PhotoUrl +
+        photoUrl +
         "&t=" +
         new Date().getTime()
       );
@@ -142,7 +109,7 @@ export default {
     <div class="photo-section">
       <div class="photo-container">
         <img
-          :src="currentUser.fullPhotoUrl"
+          :src="currentUser.PhotoUrl"
           alt="Profile Photo"
           class="profile-photo"
         />
@@ -172,7 +139,6 @@ export default {
       </div>
     </div>
   </div>
-  <main><RouterView /></main>
 </template>
 
 <style scoped>
@@ -202,21 +168,6 @@ export default {
   border-radius: 50%;
   object-fit: cover;
   border: 3px solid #4e73df;
-}
-
-.delete-photo-btn {
-  background-color: #f04e4e;
-  color: white;
-  border: none;
-  padding: 8px 20px;
-  margin-top: 10px;
-  cursor: pointer;
-  border-radius: 5px;
-  transition: background-color 0.3s;
-}
-
-.delete-photo-btn:hover {
-  background-color: #d03d3d;
 }
 
 .user-info {

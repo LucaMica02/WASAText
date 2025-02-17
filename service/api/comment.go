@@ -97,6 +97,7 @@ func (rt *_router) commentMessage(w http.ResponseWriter, r *http.Request, ps htt
 		err = json.NewEncoder(w).Encode(comment)
 		if err != nil {
 			http.Error(w, "Error encoding the response", http.StatusInternalServerError)
+			return
 		}
 	} else { // ADD
 		err = rt.db.AddComment(timestamp, userId, messageId, comment.Emoji)
@@ -109,6 +110,7 @@ func (rt *_router) commentMessage(w http.ResponseWriter, r *http.Request, ps htt
 		err = json.NewEncoder(w).Encode(comment)
 		if err != nil {
 			http.Error(w, "Error encoding the response", http.StatusInternalServerError)
+			return 
 		}
 	}
 }

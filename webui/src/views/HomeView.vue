@@ -1,10 +1,5 @@
 <script>
-import Conversation from "../components/Conversation.vue";
-
 export default {
-  components: {
-    Conversation,
-  },
   data() {
     return {
       showForwardOptions: false,
@@ -17,6 +12,7 @@ export default {
       currentUser: {},
       users: [],
       replyTo: 0,
+      pollingID: null,
     };
   },
   methods: {
@@ -28,6 +24,7 @@ export default {
       this.forwardMessage = message;
       this.showForwardOptions = true;
     },
+
     // Load the user data
     async getUsers() {
       try {
@@ -36,15 +33,15 @@ export default {
             Authorization: localStorage.getItem("authToken"),
           },
         });
-        const users = response.data;
         this.users = response.data;
-        for (let user of users) {
+        for (let user of this.users) {
           this.usernames[user.resourceId] = user.username;
         }
       } catch (error) {
         console.error("Error: " + error);
       }
     },
+
     // Get all the user conversations
     async getConversations() {
       try {
@@ -62,7 +59,12 @@ export default {
           const conversation = await this.getConversation(
             resource["resourceId"]
           );
-          conversation.resourceId = resource["resourceId"];
+          if (
+            this.selectedConversation &&
+            conversation.resourceId === this.selectedConversation.resourceId
+          ) {
+            this.selectedConversation = conversation;
+          }
           conversation.photoUrl = this.getImagePath(conversation.photoUrl);
           localConversations.push(conversation);
         }
@@ -76,9 +78,6 @@ export default {
           return lastMessageB - lastMessageA;
         });
         this.conversations = localConversations;
-        this.selectedConversation = await this.getConversation(
-          this.selectedConversation.resourceId
-        );
       } catch (error) {
         console.error("Error: ", error);
       } finally {
@@ -127,9 +126,6 @@ export default {
         );
         this.newMessage = "";
         this.replyTo = 0;
-        this.getConversations();
-        const res = await this.getConversation(conversation.resourceId);
-        this.selectConversation(res);
       } catch (error) {
         console.error("Error: ", error);
       }
@@ -147,30 +143,10 @@ export default {
             headers: { Authorization: authToken },
           }
         );
-        if (response.status === 400) {
-          alert("Bad Request");
-        } else if (response.status === 401) {
-          alert("Access token missing");
-        } else if (response.status === 403) {
-          alert("Not permitted");
-        } else if (response.status === 404) {
-          alert("Message missing");
-        } else if (response.status === 500) {
-          alert("Server Error");
-        } else if (response.status === 201) {
+        if (response.status === 201) {
           alert("Forwarded");
-          let messageCopy = { ...this.forwardMessage };
-          messageCopy.sender = authToken;
-          if (conversation.messages === null) {
-            conversation.messages = [messageCopy];
-          } else {
-            conversation.messages.push(messageCopy);
-          }
           this.showForwardOptions = false;
           this.forwardMessage = null;
-          this.selectedConversation = await this.getConversation(
-            conversation.resourceId
-          );
         }
       } catch (error) {
         console.error("Error: ", error);
@@ -181,30 +157,18 @@ export default {
     async deleteMessage(index) {
       try {
         const authToken = localStorage.getItem("authToken");
-        const response = await this.$axios.delete(
+        await this.$axios.delete(
           `/users/${authToken}/conversations/${this.selectedConversation.resourceId}/messages/${this.selectedConversation.messages[index].resourceId}`,
           {
             headers: { Authorization: authToken },
           }
         );
-        if (response.status === 400) {
-          alert("Bad Request");
-        } else if (response.status === 401) {
-          alert("Access token missing");
-        } else if (response.status === 403) {
-          alert("Not permitted");
-        } else if (response.status === 404) {
-          alert("Message missing");
-        } else if (response.status === 500) {
-          alert("Server Error");
-        } else if (response.status === 204) {
-          this.selectedConversation.messages.splice(index, 1);
-        }
       } catch (error) {
         console.error("Error: ", error);
       }
     },
 
+    // Uncomment a message
     async uncommentMessage(message) {
       try {
         const authToken = localStorage.getItem("authToken");
@@ -214,15 +178,6 @@ export default {
             headers: { Authorization: authToken },
           }
         );
-        if (response.status === 400) {
-          alert("Bad Request");
-        } else if (response.status === 401) {
-          alert("Access token missing");
-        } else if (response.status === 404) {
-          alert("Resource missing");
-        } else if (response.status === 500) {
-          alert("Server Error");
-        }
       } catch (error) {
         console.error("Error: ", error);
       }
@@ -240,29 +195,12 @@ export default {
             headers: { Authorization: authToken },
           }
         );
-        if (response.status === 400) {
-          alert("Bad Request");
-        } else if (response.status === 401) {
-          alert("Access token missing");
-        } else if (response.status === 403) {
-          alert("Not permitted");
-        } else if (response.status === 404) {
-          alert("Resource missing");
-        } else if (response.status === 500) {
-          alert("Server Error");
-        } else if (response.status === 200) {
+        if (response.status === 200) {
           // delete the comment
           this.uncommentMessage(message);
         }
       } catch (error) {
         console.error("Error: ", error);
-      } finally {
-        // update the view
-        this.getConversations();
-        const res = await this.getConversation(
-          this.selectedConversation.resourceId
-        );
-        this.selectConversation(res);
       }
     },
 
@@ -280,17 +218,7 @@ export default {
             headers: { Authorization: userId },
           }
         );
-        if (response.status === 400) {
-          alert("Bad Request");
-        } else if (response.status === 401) {
-          alert("Access token missing");
-        } else if (response.status === 403) {
-          alert("Not permitted");
-        } else if (response.status === 409) {
-          alert("Conversation already exists");
-        } else if (response.status === 500) {
-          alert("Server Error");
-        } else if (response.status === 201) {
+        if (response.status === 201) {
           alert("Conversation created");
           return response.data;
         }
@@ -309,7 +237,6 @@ export default {
       } else {
         conversation = await this.startNewChat(user);
         this.forwardMessageToConversation(conversation);
-        this.conversations.push(conversation);
       }
     },
 
@@ -323,7 +250,6 @@ export default {
     selectConversation(conversation) {
       this.replyTo = 0;
       this.selectedConversation = conversation;
-      this.getConversation(conversation.resourceId);
     },
 
     // Return the message content
@@ -342,20 +268,32 @@ export default {
 
     // Return full image path
     getImagePath(path) {
-      return this.$axios["defaults"]["baseURL"] + "/images?path=" + path;
+      return (
+        this.$axios["defaults"]["baseURL"] +
+        "/images?path=" +
+        path +
+        "&t=" +
+        new Date().getTime()
+      );
     },
 
     startPolling() {
-      this.getConversations();
-      this.pollingInterval = setInterval(() => {
+      this.pollingID = setInterval(() => {
         this.getConversations();
+        this.getUsers();
       }, 1000);
+    },
+
+    stopPolling() {
+      clearInterval(this.pollingID);
     },
   },
   mounted() {
     this.startPolling();
     this.fetchCurrentUser();
-    this.getUsers();
+  },
+  unmounted() {
+    this.stopPolling();
   },
 };
 </script>
@@ -430,8 +368,6 @@ export default {
                 {{ getOriginalMessage(message.repliedTo) }}</span
               >
               <p>
-                <span v-if="message.status === 'received'"> ✔️ </span>
-                <span v-if="message.status === 'read'"> ✔️✔️ </span>
                 <strong
                   >{{
                     usernames[message.sender] === currentUser["username"]
@@ -486,8 +422,6 @@ export default {
       </button>
     </div>
   </div>
-
-  <main><RouterView /></main>
 </template>
 
 <style scoped>
@@ -522,7 +456,7 @@ export default {
 }
 
 .messages-container {
-  max-height: 200px;
+  max-height: 400px;
   overflow-y: auto;
   border: 1px solid #ddd;
 }

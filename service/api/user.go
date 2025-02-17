@@ -22,30 +22,36 @@ func (rt *_router) getUsers(w http.ResponseWriter, r *http.Request, ps httproute
 		users, err := rt.db.GetAllUsers()
 		if err != nil {
 			http.Error(w, "Error getting the users", http.StatusInternalServerError)
+			return
 		}
 		w.WriteHeader(http.StatusOK)
 		err = json.NewEncoder(w).Encode(users)
 		if err != nil {
 			http.Error(w, "Error encoding the response", http.StatusInternalServerError)
+			return
 		}
 	} else {
 		// search for the specified user
 		exists, err := rt.db.CheckIfUserExistsByUsername(username)
 		if err != nil {
 			http.Error(w, "Error checking the user", http.StatusInternalServerError)
+			return
 		}
 		if exists { // return the User
 			user, err := rt.db.GetUserByUsername(username)
 			if err != nil {
 				http.Error(w, "Error getting the user", http.StatusInternalServerError)
+				return
 			}
 			w.WriteHeader(http.StatusOK)
 			err = json.NewEncoder(w).Encode(user)
 			if err != nil {
 				http.Error(w, "Error encoding the response", http.StatusInternalServerError)
+				return
 			}
 		} else {
 			http.Error(w, "User not found", http.StatusNotFound)
+			return 
 		}
 	}
 }
@@ -63,6 +69,9 @@ func (rt *_router) getUser(w http.ResponseWriter, r *http.Request, ps httprouter
 	auth := r.Header.Get("Authorization")
 	if auth == "" {
 		http.Error(w, "auth token missing", http.StatusUnauthorized)
+		return
+	} else if auth != userIdString {
+		http.Error(w, "auth token not valid", http.StatusUnauthorized)
 		return
 	}
 
@@ -181,7 +190,7 @@ func (rt *_router) setMyPhoto(w http.ResponseWriter, r *http.Request, ps httprou
 	}
 
 	// parse the file
-	err = r.ParseMultipartForm(10 << 25) // max 25 MB
+	err = r.ParseMultipartForm(10 << 20) // max 10 MB
 	if err != nil {
 		http.Error(w, "Error parsing form-data", http.StatusBadRequest)
 		return

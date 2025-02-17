@@ -23,17 +23,7 @@ export default {
             headers: { Authorization: userId },
           }
         );
-        if (response.status === 400) {
-          alert("Bad Request");
-        } else if (response.status === 401) {
-          alert("Access token missing");
-        } else if (response.status === 403) {
-          alert("Not permitted");
-        } else if (response.status === 409) {
-          alert("Conversation already exists");
-        } else if (response.status === 500) {
-          alert("Server Error");
-        } else if (response.status === 201) {
+        if (response.status === 201) {
           alert("Conversation created");
         }
       } catch (error) {

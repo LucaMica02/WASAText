@@ -462,6 +462,7 @@ func (rt *_router) setGroupPhoto(w http.ResponseWriter, r *http.Request, ps http
 	out, err := os.Create(filePath)
 	if err != nil {
 		http.Error(w, "Error saving the file", http.StatusInternalServerError)
+		return 
 	}
 	defer out.Close()
 
@@ -469,6 +470,7 @@ func (rt *_router) setGroupPhoto(w http.ResponseWriter, r *http.Request, ps http
 	_, err = io.Copy(out, file)
 	if err != nil {
 		http.Error(w, "Error writing the file", http.StatusInternalServerError)
+		return 
 	}
 
 	// update the photoUrl

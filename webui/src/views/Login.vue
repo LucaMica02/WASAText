@@ -1,35 +1,31 @@
-<script setup>
-import { RouterView } from "vue-router";
-import { ref } from "vue";
-import { EventBus } from "../EventBus";
-</script>
 <script>
-const username = ref("");
+import { EventBus } from "../EventBus";
 export default {
+  data() {
+    return {
+      username: "",
+    };
+  },
   methods: {
     async handleLogin() {
       try {
         const response = await this.$axios.post("/session", {
-          username: username.value,
+          username: this.username,
         });
         if (response.status == 200) {
-          //alert("Welcome Back " + username.value);
-          localStorage.setItem("username", username.value);
+          alert("Welcome Back " + this.username);
+          localStorage.setItem("username", this.username);
           localStorage.setItem("authToken", response.data["resourceId"]);
           localStorage.setItem("isLoggedIn", "true");
           EventBus.isLoggedIn = true;
           this.$router.replace("/");
         } else if (response.status == 201) {
-          //alert("Welcome " + username.value);
-          localStorage.setItem("username", username.value);
+          alert("Welcome " + this.username);
+          localStorage.setItem("username", this.username);
           localStorage.setItem("authToken", response.data["resourceId"]);
           localStorage.setItem("isLoggedIn", "true");
           EventBus.isLoggedIn = true;
           this.$router.replace("/");
-        } else if (response.status == 400) {
-          alert("Request not valid");
-        } else {
-          alert("General Error");
         }
       } catch (error) {
         this.error = "Failed to load data: " + error.message;
@@ -42,24 +38,21 @@ export default {
 <template>
   <div class="login-body">
     <div class="login-form">
-      <form @submit.prevent="handleLogin">
-        <h3 class="login-title">Welcome Back!</h3>
-        <div class="form-group">
-          <input
-            type="text"
-            id="username"
-            placeholder="Username"
-            v-model="username"
-            required
-          />
-        </div>
-        <button class="login-button" @click="handleLogin()">
-          <b>Login</b>
-        </button>
-      </form>
+      <h3 class="login-title">Welcome Back!</h3>
+      <div class="form-group">
+        <input
+          type="text"
+          id="username"
+          placeholder="Username"
+          v-model="username"
+          required
+        />
+      </div>
+      <button class="login-button" @click="handleLogin()">
+        <b>Login</b>
+      </button>
     </div>
   </div>
-  <main><RouterView /></main>
 </template>
 
 <style>
