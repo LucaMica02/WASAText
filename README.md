@@ -5,7 +5,11 @@
 
 ## Description 📖
 
-Connect with your friends eortlessly using WASAText! Send and receive messages, whether one-on-one or in groups, all from the convenience of your PC. Enjoy seamless conversations with text or images and easily stay in touch through your private chats or group discussions!
+Connect with your friends effortlessly using WASAText! Send and receive messages, whether one-on-one or in groups, all from the convenience of your PC. Enjoy seamless conversations with text or images and easily stay in touch through your private chats or group discussions!
+
+## About This Project
+
+This project’s initial structure comes from the [Fantastic Coffee (decaffeinated) template](https://github.com/sapienzaapps/fantastic-coffee-decaffeinated), adapted to fit WASAText’s requirements.
 
 ## Project Structure 🏗️
 
@@ -69,10 +73,11 @@ Connect with your friends eortlessly using WASAText! Send and receive messages,
    
 ### Development Mode
 1. **Backend**
+  - Run:
    ```bash
-   go run ./cmd/webapi/
+   ./open-node.sh
    ```
-2. **Frontend**
+3. **Frontend**
   - Build:
    ```bash
    ./open-node.sh
